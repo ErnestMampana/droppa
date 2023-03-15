@@ -5,6 +5,7 @@ package com.droppa.clone.droppa.services;
 
 import com.droppa.clone.droppa.common.ClientException;
 import com.droppa.clone.droppa.dto.BookingDTO;
+import com.droppa.clone.droppa.dto.CoordinatesDTO;
 import com.droppa.clone.droppa.enums.AccountStatus;
 import com.droppa.clone.droppa.enums.BookingStatus;
 import com.droppa.clone.droppa.models.Adress;
@@ -111,6 +112,13 @@ public class BookingService {
             }
         }
 
+    }
+    
+    //Change input parameters to latlong and calculate distance between two geo locations
+    public double requestPrice(CoordinatesDTO coordinates) {
+    	double basePrice = 80.00;
+    	//TODO: Calculate distance and assign new price
+    	return basePrice;
     }
 
     public List<Booking> getAllBookings() {

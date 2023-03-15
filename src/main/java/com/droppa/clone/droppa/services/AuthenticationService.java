@@ -4,6 +4,7 @@ import com.droppa.clone.droppa.auth.AuthenticationResponse;
 import com.droppa.clone.droppa.common.ClientException;
 import com.droppa.clone.droppa.dto.AuthenticationRequest;
 import com.droppa.clone.droppa.dto.CredentialsDTO;
+import com.droppa.clone.droppa.dto.OtpDTO;
 import com.droppa.clone.droppa.dto.PersonDTO;
 import com.droppa.clone.droppa.dto.RegisterRequest;
 import com.droppa.clone.droppa.enums.AccountStatus;
@@ -19,7 +20,7 @@ import com.droppa.clone.droppa.services.JwtService;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Optional;
-
+import org.hibernate.boot.model.naming.IllegalIdentifierException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,7 +29,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
-	
+
 	private final PersonRepository personRepository;
 	private final UserAccountRepository userAccountRepository;
 	private final PartyService partyService;
@@ -37,54 +38,58 @@ public class AuthenticationService {
 	private final JwtService jwtService;
 	private final AuthenticationManager authenticationManager;
 
-	public AuthenticationResponse createUserAccount(PersonDTO person) {
+	public OtpDTO createUserAccount(PersonDTO person) {
+		try {
+			Optional<UserAccount> userAccount = userAccountRepository.findByEmail(person.getEmail());
 
-		Optional<UserAccount> userAccount = userAccountRepository.findByEmail(person.getEmail());
+			Optional<Person> pers = personRepository.findByEmail(person.getEmail());
 
-		Optional<Person> pers = personRepository.findByEmail(person.getEmail());
+			if (userAccount.isPresent())
+				throw new ClientException("User already Exist");
 
-		if (userAccount.isPresent())
-			throw new ClientException("User already Exist");
+			if (pers.isPresent())
+				if (pers.get().getEmail().equals(person.getEmail()))
+					throw new ClientException("person exist");
 
-		if (pers.isPresent()) 
-			if (pers.get().getEmail().equals(person.getEmail()))
-				throw new ClientException("person exist");
-		
+			int otp = partyService.generateOTP(person.getCellphone());
 
-		int otp = partyService.generateOTP(person.getCellphone());
+			var owner = Person.builder().userName(person.getUserName()).surname(person.getSurname())
+					.cellphone(person.getCellphone()).walletBalance(00.0).email(person.getEmail()).build();
 
-		var owner = Person.builder().userName(person.getUserName()).surname(person.getSurname())
-				.cellphone(person.getCellphone()).walletBalance(00.0).email(person.getEmail()).build();
+			var acc = UserAccount.builder().email(owner.getEmail()).person(owner).confirmed(false).otp(otp)
+					.status(AccountStatus.AWAITING_CONFIRMATION).password(passwordEncoder.encode(person.getPassword()))
+					.role(Role.USER).build();
 
-		var acc = UserAccount.builder().email(owner.getEmail()).person(owner).confirmed(false).otp(otp)
-				.status(AccountStatus.AWAITING_CONFIRMATION).password(passwordEncoder.encode(person.getPassword()))
-				.role(Role.USER).build();
+			personRepository.save(owner);
 
-		personRepository.save(owner);
+			UserAccount savedUser = userAccountRepository.save(acc);
 
-		UserAccount savedUser = userAccountRepository.save(acc);
+			var jwtToken = jwtService.generateToken(acc);
 
-		var jwtToken = jwtService.generateToken(acc);
+			saveUserToken(savedUser, jwtToken);
 
-		saveUserToken(savedUser, jwtToken);
+			System.out.println(jwtToken);
 
-		System.out.println(jwtToken);
+//			return AuthenticationResponse.builder().token(jwtToken).build();
+			return OtpDTO.builder().otp(otp).build();
 
-		return AuthenticationResponse.builder().token(jwtToken).build();
+		} catch (Exception e) {
+			throw new ClientException(e.getMessage());
+		}
 	}
 
 	public AuthenticationResponse authenticate(CredentialsDTO request) {
 		authenticationManager
 				.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
-		
+
 		var user = userAccountRepository.findByEmail(request.getUsername()).orElseThrow();
-		
+
 		var jwtToken = jwtService.generateToken(user);
-		
+
 		revokeAllUserTokens(user);
-		
+
 		saveUserToken(user, jwtToken);
-		
+
 		return AuthenticationResponse.builder().token(jwtToken).build();
 	}
 

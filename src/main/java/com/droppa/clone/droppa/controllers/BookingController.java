@@ -6,6 +6,7 @@ package com.droppa.clone.droppa.controllers;
 import java.util.List;
 
 import com.droppa.clone.droppa.dto.BookingDTO;
+import com.droppa.clone.droppa.dto.CoordinatesDTO;
 import com.droppa.clone.droppa.enums.BookingStatus;
 import com.droppa.clone.droppa.models.Booking;
 import com.droppa.clone.droppa.services.BookingService;
@@ -76,6 +77,11 @@ public class BookingController {
 			@RequestParam(required = true) String userId) {
 		Booking cBooking = bookingService.cancelBooking(bookingId, userId);
 		return new ResponseEntity<Booking>(cBooking, HttpStatus.OK);
+	}
+
+	@GetMapping("/getprice")
+	public ResponseEntity<Double> requestPrice(@RequestBody CoordinatesDTO coordinates) {
+		return new ResponseEntity<Double>(bookingService.requestPrice(coordinates), HttpStatus.OK);
 	}
 
 }

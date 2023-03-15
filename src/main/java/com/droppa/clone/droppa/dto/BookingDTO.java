@@ -3,6 +3,8 @@
  */
 package com.droppa.clone.droppa.dto;
 
+import java.time.LocalDate;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -39,6 +41,6 @@ public class BookingDTO {
 	public String dropOffSurname;
 	public String dropOffContact;
 
-	public String date;
+	public LocalDate date;
 
 }

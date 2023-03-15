@@ -2,6 +2,7 @@ package com.droppa.clone.droppa.controllers;
 
 import java.util.List;
 
+import com.droppa.clone.droppa.dto.UserResponseDTO;
 import com.droppa.clone.droppa.models.Person;
 import com.droppa.clone.droppa.models.UserAccount;
 import com.droppa.clone.droppa.services.UserService;
@@ -37,10 +38,10 @@ public class UserController {
 //	}
 //
 	@PutMapping("/email/confirmation/{email}")
-	public ResponseEntity<String> confirmEmail(@PathVariable("email") String email,
+	public ResponseEntity<UserResponseDTO> confirmEmail(@PathVariable("email") String email,
 			@RequestParam(required = true) int code) {
-		String resp = userService.confirmEmail(email, code);
-		return new ResponseEntity<String>(resp, HttpStatus.OK);
+		UserResponseDTO resp = userService.confirmEmail(email, code);
+		return new ResponseEntity<UserResponseDTO>(resp, HttpStatus.OK);
 	}
 
 	@GetMapping("/getuserbyemail/{email}")

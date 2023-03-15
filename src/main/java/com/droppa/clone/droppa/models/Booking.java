@@ -3,8 +3,11 @@
  */
 package com.droppa.clone.droppa.models;
 
+import java.time.LocalDate;
 
 import com.droppa.clone.droppa.enums.BookingStatus;
+import com.droppa.clone.droppa.enums.VehicleType;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,10 +33,16 @@ public class Booking {
 	private String userId;
 	@OneToOne
 	private DropDetails dropDetails;
-	private String bookingDate;
+	private LocalDate bookingDate;
 	private double price;
 	private String assinedDriver;
 	@Enumerated(EnumType.STRING)
 	private BookingStatus status;
-
+	private int loads;
+	private int labours;
+	private String trackNumber;
+	private String itemsToBeDelivered;
+	@Enumerated(EnumType.STRING)
+	private VehicleType vehicleType;
+	private String paymentType;
 }

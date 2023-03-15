@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import com.droppa.clone.droppa.common.ClientException;
 import com.droppa.clone.droppa.dto.PersonDTO;
+import com.droppa.clone.droppa.dto.UserResponseDTO;
 import com.droppa.clone.droppa.enums.AccountStatus;
 import com.droppa.clone.droppa.enums.Role;
 import com.droppa.clone.droppa.enums.TokenType;
@@ -34,10 +35,8 @@ public class UserService {
 		return userAccountRepository.findAll();
 	}
 
-	
-
 	@Transactional
-	public String confirmEmail(String email, int code) {
+	public UserResponseDTO confirmEmail(String email, int code) {
 
 		String message = "User " + "'" + email + "'" + " was not found";
 		UserAccount user = userAccountRepository.findByEmail(email)
@@ -56,7 +55,12 @@ public class UserService {
 
 			message = "Account Activated";
 
-			return message;
+			Token tokenData = tokenRepository.findByUserId(user.getId()).get();
+
+			return UserResponseDTO.builder().celphoneNumber(user.getPerson().getCellphone())
+					.surname(user.getPerson().getSurname()).userName(user.getPerson().getUserName())
+					.token(tokenData.getToken()).myBookings(null).walletBalance(user.getPerson().getWalletBalance())
+					.userId(user.getEmail()).build();
 		} else {
 			message = "invalid otp";
 			throw new ClientException(message);
