@@ -3,15 +3,13 @@
  */
 package com.droppa.clone.droppa.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
  * @author Ernest Mampana
@@ -31,4 +29,7 @@ public class Company {
 	@OneToOne
 	private Person owner;
 	private String location;
+//	@ElementCollection
+//	private List<Vehicle> vehicles;
+
 }

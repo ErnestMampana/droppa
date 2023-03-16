@@ -7,6 +7,7 @@ import com.droppa.clone.droppa.dto.CredentialsDTO;
 import com.droppa.clone.droppa.dto.OtpDTO;
 import com.droppa.clone.droppa.dto.PersonDTO;
 import com.droppa.clone.droppa.dto.RegisterRequest;
+import com.droppa.clone.droppa.dto.UserResponseDTO;
 import com.droppa.clone.droppa.enums.AccountStatus;
 import com.droppa.clone.droppa.enums.Role;
 import com.droppa.clone.droppa.enums.TokenType;
@@ -18,6 +19,7 @@ import com.droppa.clone.droppa.repositories.TokenRepository;
 import com.droppa.clone.droppa.repositories.UserAccountRepository;
 import com.droppa.clone.droppa.services.JwtService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 import org.hibernate.boot.model.naming.IllegalIdentifierException;
@@ -28,6 +30,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationService {
 
 	private final PersonRepository personRepository;
@@ -40,6 +43,7 @@ public class AuthenticationService {
 
 	public OtpDTO createUserAccount(PersonDTO person) {
 		try {
+			log.info("===================== Requesting Account create.");
 			Optional<UserAccount> userAccount = userAccountRepository.findByEmail(person.getEmail());
 
 			Optional<Person> pers = personRepository.findByEmail(person.getEmail());
@@ -68,7 +72,8 @@ public class AuthenticationService {
 
 			saveUserToken(savedUser, jwtToken);
 
-			System.out.println(jwtToken);
+			log.info("================================= Account created for " + savedUser.getPerson().getUserName()
+					+ " " + savedUser.getPerson().getSurname());
 
 //			return AuthenticationResponse.builder().token(jwtToken).build();
 			return OtpDTO.builder().otp(otp).build();
@@ -78,11 +83,33 @@ public class AuthenticationService {
 		}
 	}
 
-	public AuthenticationResponse authenticate(CredentialsDTO request) {
-		authenticationManager
-				.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+	public UserResponseDTO authenticate(CredentialsDTO request) {
 
 		var user = userAccountRepository.findByEmail(request.getUsername()).orElseThrow();
+
+		if (user.isConfirmed()) {
+			if (user.getStatus().equals(AccountStatus.ACTIVE)) {
+				authenticationManager.authenticate(
+						new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+
+				log.info("Useraccount Logged In ================= " + user.getEmail());
+				log.info("Useraccount Logged In ================= " + user.getPerson().getUserName() + " "
+						+ user.getPerson().getSurname());
+
+			} else {
+				if (user.getStatus().equals(AccountStatus.DELETED)) {
+					throw new ClientException(
+							"This account has been deleted, please contact Droppa Clone for re-activation.");
+				} else if (user.getStatus().equals(AccountStatus.AWAITING_PWD_RESET)) {
+					throw new ClientException("User awaiting password reset.");
+				} else {
+					throw new ClientException(
+							"This account has been suspended, please contact Droppa Clone for re-activation.");
+				}
+			}
+		} else {
+			throw new ClientException("Account not confirmed");
+		}
 
 		var jwtToken = jwtService.generateToken(user);
 
@@ -90,7 +117,10 @@ public class AuthenticationService {
 
 		saveUserToken(user, jwtToken);
 
-		return AuthenticationResponse.builder().token(jwtToken).build();
+		// return AuthenticationResponse.builder().token(jwtToken).build();
+		return UserResponseDTO.builder().celphoneNumber(user.getPerson().getCellphone())
+				.surname(user.getPerson().getSurname()).userName(user.getPerson().getUserName()).token(jwtToken)
+				.myBookings(null).walletBalance(user.getPerson().getWalletBalance()).userId(user.getEmail()).build();
 	}
 
 	private void saveUserToken(UserAccount user, String jwtToken) {

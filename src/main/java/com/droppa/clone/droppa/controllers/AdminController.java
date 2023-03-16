@@ -38,11 +38,11 @@ public class AdminController {
 		return new ResponseEntity<Booking>(booking,HttpStatus.OK);
 	}
 
-	@DeleteMapping("/deletebooking/{bookingId}")
-	public ResponseEntity<String> deleteBooking(@PathVariable("bookingId") String bokingId) {
-		String message = adminService.deleteBooking(bokingId);
-		return new ResponseEntity<String>(message,HttpStatus.OK);
-	}
+//	@DeleteMapping("/deletebooking/{bookingId}")
+//	public ResponseEntity<String> deleteBooking(@PathVariable("bookingId") String bokingId) {
+//		String message = adminService.deleteBooking(bokingId);
+//		return new ResponseEntity<String>(message,HttpStatus.OK);
+//	}
 
 	@PutMapping("/suspenduser/{useremail}")
 	public ResponseEntity<String> suspendUser(@PathVariable("useremail") String userId) {

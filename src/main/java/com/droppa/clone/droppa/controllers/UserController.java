@@ -65,10 +65,10 @@ public class UserController {
 	}
 
 	@PutMapping("/loadwallet/{username}")
-	public ResponseEntity<UserAccount> loadWallet(@PathVariable("username") String username,
+	public ResponseEntity<Double> loadWallet(@PathVariable("username") String username,
 			@RequestParam(required = true) double amount) {
-		UserAccount userAccount = userService.loadWallet(username, amount);
-		return new ResponseEntity<UserAccount>(userAccount,HttpStatus.OK);
+		Double userAccount = userService.loadWallet(username, amount);
+		return new ResponseEntity<Double>(userAccount,HttpStatus.OK);
 	}
 
 }

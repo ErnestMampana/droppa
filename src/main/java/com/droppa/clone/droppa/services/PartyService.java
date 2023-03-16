@@ -42,4 +42,12 @@ public class PartyService {
 		return token;
 
 	}
+
+	public String generateTracknumber() {
+		final int max = 999999;
+		final int min = 100009;
+		Random random = new Random();
+		int ran = random.nextInt((max - min) + 1) + min;
+		return "GAU" + ran;
+	}
 }

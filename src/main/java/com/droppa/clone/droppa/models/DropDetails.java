@@ -25,12 +25,12 @@ public class DropDetails {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	private String pickUpName;
-	private String pickUpSurname;
+	private String pickUpNames;
+	//private String pickUpSurname;
 	private String pickUpContact;
 
-	private String dropOffName;
-	private String dropOffSurname;
+	private String dropOffNames;
+	//private String dropOffSurname;
 	private String dropOffContact;
 
 }

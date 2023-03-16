@@ -149,18 +149,18 @@ public class AdminService {
 
 	}
 
-	public String deleteBooking(String bookingId) {
-		String message = "Booking not found";
-		Booking booking = bookingService.getBookingById(bookingId);
-		if (booking.getStatus().equals(BookingStatus.IN_TRANSACT)) {
-			throw new ClientException("This booking cant be deleted, driver is already i transit");
-		} else {
-			bookingRepository.deleteByBookingId(bookingId);
-			dropDetailsrepository.deleteById(booking.getDropDetails().getId());
-			addressRespository.deleteById(booking.getAdressDetails().getId());
-
-			message = "booking deleted";
-		}
-		return message;
-	}
+//	public String deleteBooking(String bookingId) {
+//		String message = "Booking not found";
+//		Booking booking = bookingService.getBookingById(bookingId);
+//		if (booking.getStatus().equals(BookingStatus.IN_TRANSACT)) {
+//			throw new ClientException("This booking cant be deleted, driver is already i transit");
+//		} else {
+//			bookingRepository.deleteByBookingId(bookingId);
+//			dropDetailsrepository.deleteById(booking.getDropDetails().getId());
+//			addressRespository.deleteById(booking.getAdressDetails().getId());
+//
+//			message = "booking deleted";
+//		}
+//		return message;
+//	}
 }

@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  */
 @RestController
-@RequestMapping("/booking")
+@RequestMapping("/api/v1/booking")
 @RequiredArgsConstructor
 public class BookingController {
 
@@ -35,9 +35,9 @@ public class BookingController {
 
 	// @Secured
 	@PostMapping("/book")
-	public ResponseEntity<Booking> createBooking(@RequestBody BookingDTO bookingDto) {
-		Booking book = bookingService.createBooking(bookingDto);
-		return new ResponseEntity<Booking>(book, HttpStatus.OK);
+	public ResponseEntity<BookingDTO> createBooking(@RequestBody BookingDTO bookingDto) {
+		BookingDTO book = bookingService.createBooking(bookingDto);
+		return new ResponseEntity<BookingDTO>(book, HttpStatus.OK);
 	}
 
 	@GetMapping("/bookingbystatus/{status}")
@@ -79,7 +79,7 @@ public class BookingController {
 		return new ResponseEntity<Booking>(cBooking, HttpStatus.OK);
 	}
 
-	@GetMapping("/getprice")
+	@PostMapping("/getprice")
 	public ResponseEntity<Double> requestPrice(@RequestBody CoordinatesDTO coordinates) {
 		return new ResponseEntity<Double>(bookingService.requestPrice(coordinates), HttpStatus.OK);
 	}

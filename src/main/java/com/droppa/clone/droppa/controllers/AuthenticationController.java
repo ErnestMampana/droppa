@@ -7,6 +7,7 @@ import com.droppa.clone.droppa.dto.CredentialsDTO;
 import com.droppa.clone.droppa.dto.OtpDTO;
 import com.droppa.clone.droppa.dto.PersonDTO;
 import com.droppa.clone.droppa.dto.RegisterRequest;
+import com.droppa.clone.droppa.dto.UserResponseDTO;
 import com.droppa.clone.droppa.models.UserAccount;
 import com.droppa.clone.droppa.services.AuthenticationService;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ public class AuthenticationController {
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody CredentialsDTO request) {
+	public ResponseEntity<UserResponseDTO> authenticate(@RequestBody CredentialsDTO request) {
 		return ResponseEntity.ok(service.authenticate(request));
 	}
 

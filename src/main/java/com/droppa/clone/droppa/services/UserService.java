@@ -112,12 +112,12 @@ public class UserService {
 	}
 
 	@Transactional
-	public UserAccount loadWallet(String username, double amount) {
+	public double loadWallet(String username, double amount) {
 
 		UserAccount userAccount = getUserByEmail(username);
 		if (userAccount.getStatus().equals(AccountStatus.ACTIVE)) {
 			userAccount.getPerson().setWalletBalance(userAccount.getPerson().getWalletBalance() + amount);
-			return userAccount;
+			return userAccount.getPerson().getWalletBalance();
 		} else {
 			if (userAccount.getStatus().equals(AccountStatus.AWAITING_CONFIRMATION)) {
 				throw new ClientException("Please confirm your account first.");

@@ -28,11 +28,11 @@ public class Booking {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	private String bookingId;
-	@OneToOne
-	private Adress adressDetails;
+	//@OneToOne
+	private String pickUpAddess;
 	private String userId;
-	@OneToOne
-	private DropDetails dropDetails;
+	//@OneToOne
+	private String dropOffAdress;
 	private LocalDate bookingDate;
 	private double price;
 	private String assinedDriver;
@@ -42,7 +42,11 @@ public class Booking {
 	private int labours;
 	private String trackNumber;
 	private String itemsToBeDelivered;
-	@Enumerated(EnumType.STRING)
-	private VehicleType vehicleType;
+	//@Enumerated(EnumType.STRING)
+	private String vehicleType;
 	private String paymentType;
+	private String time;
+	@OneToOne
+	private DropDetails dropDetails;
+
 }

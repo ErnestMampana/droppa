@@ -37,6 +37,7 @@ public class UserAccount implements UserDetails {
 	private String password;
 	@Enumerated(EnumType.STRING)
 	private Role role;
+	//private List<Booking> bookings; to look for solution, or just use gson encoder
 
 	@OneToMany(mappedBy = "user")
 	private List<Token> tokens;
