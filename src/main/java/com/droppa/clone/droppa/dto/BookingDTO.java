@@ -61,5 +61,6 @@ public class BookingDTO {
 	private String itemsToBeDelivered;
 	private double bookingPrice;
 	private String time;
+	private boolean isPaid;
 
 }

@@ -35,9 +35,9 @@ public class BookingController {
 
 	// @Secured
 	@PostMapping("/book")
-	public ResponseEntity<BookingDTO> createBooking(@RequestBody BookingDTO bookingDto) {
-		BookingDTO book = bookingService.createBooking(bookingDto);
-		return new ResponseEntity<BookingDTO>(book, HttpStatus.OK);
+	public ResponseEntity<Booking> createBooking(@RequestBody BookingDTO bookingDto) {
+		Booking book = bookingService.createBooking(bookingDto);
+		return new ResponseEntity<Booking>(book, HttpStatus.OK);
 	}
 
 	@GetMapping("/bookingbystatus/{status}")

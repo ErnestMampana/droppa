@@ -16,10 +16,12 @@ import com.droppa.clone.droppa.repositories.AddressRespository;
 import com.droppa.clone.droppa.repositories.BookingRepository;
 import com.droppa.clone.droppa.repositories.DropDetailsrepository;
 import com.droppa.clone.droppa.repositories.UserAccountRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.catalina.mapper.Mapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,28 +50,10 @@ public class BookingService {
 
 	private final UserAccountRepository userAccountRepository;
 
-
-	public BookingDTO createBooking(BookingDTO bookingDto) {
+	public Booking createBooking(BookingDTO bookingDto) {
 
 		log.info("======================================== Requesting to create a booking");
 		String bookingId;
-
-		// Person person = userService.getUserById(bookingDto.userId).getOwner();
-
-//		if (person.getId() == null)
-//			throw new ClientException("Only registered users can create a booking");
-
-//        var adress = Adress.builder()
-//                .pickUpStandNumber(bookingDto.getPickUpStandNumber())
-//                .pickUpStreetName(bookingDto.getPickUpStreetName())
-//                .pickUpSuburb(bookingDto.getPickUpSuburb())
-//                .pickUpProvince(bookingDto.getPickUpProvince())
-//                .pickUpPostalCode(bookingDto.getPickUpPostalCode())
-//                .dropOffStandNumber(bookingDto.getDropOffStandNumber())
-//                .dropOffStreetName(bookingDto.getDropOffStreetName())
-//                .dropOffSuburb(bookingDto.getDropOffSuburb())
-//                .dropOffProvince(bookingDto.getDropOffProvince())
-//                .dropOffPostalCode(bookingDto.getDropOffPostalCode()).build();
 
 		Optional<UserAccount> user = userAccountRepository.findByEmail(bookingDto.getUserId());
 
@@ -91,13 +75,21 @@ public class BookingService {
 				}
 			}
 
+			BookingStatus status;
+
+			if (bookingDto.isPaid()) {
+				status = BookingStatus.AWAITING_DRIVER;
+			} else {
+				status = BookingStatus.AWAITING_PAYMENT;
+			}
+
 			var booking = Booking.builder().bookingId(bookingId).pickUpAddess(bookingDto.getPickupadress())
 					.userId(bookingDto.getUserId()).dropOffAdress(bookingDto.getDropoffadress())
 					.bookingDate(bookingDto.getDate()).time(bookingDto.getTime()).price(bookingDto.getBookingPrice())
-					.assinedDriver(null).itemsToBeDelivered(bookingDto.getItemsToBeDelivered())
-					.labours(bookingDto.getLabours()).paymentType(bookingDto.getPaymentType()).dropDetails(dropDetails)
-					.loads(bookingDto.getLoads()).assinedDriver(null).vehicleType(bookingDto.getVehicle())
-					.status(BookingStatus.AWAITING_DRIVER).trackNumber(partyService.generateTracknumber()).build();
+					.itemsToBeDelivered(bookingDto.getItemsToBeDelivered()).labours(bookingDto.getLabours())
+					.paymentType(bookingDto.getPaymentType()).dropDetails(dropDetails).loads(bookingDto.getLoads())
+					.assinedDriver(null).vehicleType(bookingDto.getVehicle()).status(status)
+					.trackNumber(partyService.generateTracknumber()).build();
 
 			UserAccount userAccount = userService.getUserByEmail(bookingDto.getUserId());
 
@@ -105,15 +97,9 @@ public class BookingService {
 				log.info("========================= Booking " + bookingId + " has been created.");
 				dropRepo.save(dropDetails);
 				bookingRepository.save(booking);
-				return BookingDTO.builder().userId(booking.getUserId()).pickupadress(booking.getPickUpAddess())
-						.dropoffadress(booking.getDropOffAdress()).date(booking.getBookingDate())
-						.vehicle(booking.getVehicleType()).status(booking.getStatus().toString())
-						.pickUpName(booking.getDropDetails().getPickUpNames()).bookingPrice(booking.getPrice())
-						.dropOffName(booking.getDropDetails().getDropOffNames())
-						.dropOffPhone(booking.getDropDetails().getDropOffContact())
-						.paymentType(booking.getPaymentType()).loads(booking.getLoads()).labours(booking.getLabours())
-						.trackNumber(booking.getTrackNumber()).itemsToBeDelivered(booking.getItemsToBeDelivered())
-						.bookingPrice(booking.getPrice()).time(booking.getTime()).build();
+
+				return booking;
+
 			} else {
 				if (userAccount.getStatus().equals(AccountStatus.AWAITING_CONFIRMATION)) {
 					throw new ClientException("Please confirm your account first.");
@@ -190,7 +176,6 @@ public class BookingService {
 		}
 	}
 
-
 	public List<Booking> getBookingByUserId(String userId) {
 		Optional<List<Booking>> bookingOptional = bookingRepository.findAllByUserId(userId);
 
@@ -210,7 +195,8 @@ public class BookingService {
 	public Booking cancelBooking(String bookingId, String userId) {
 		Booking booking = getBookingById(bookingId);
 		if (booking.getBookingId() != null && booking.getStatus() != BookingStatus.CANCELLED
-				&& booking.getUserId().equals(userId) && booking.getStatus() != BookingStatus.COMPLETE) {
+				&& booking.getUserId().equals(userId) && booking.getStatus() != BookingStatus.COMPLETE
+				&& booking.getStatus() != BookingStatus.IN_TRANSACT) {
 
 			booking.setStatus(BookingStatus.CANCELLED);
 			return booking;
