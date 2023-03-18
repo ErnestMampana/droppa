@@ -48,5 +48,7 @@ public class Booking {
 	private String time;
 	@OneToOne
 	private DropDetails dropDetails;
+	private String promoCodeUsed;
+	
 
 }

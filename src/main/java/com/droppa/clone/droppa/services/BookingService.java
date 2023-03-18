@@ -6,6 +6,7 @@ package com.droppa.clone.droppa.services;
 import com.droppa.clone.droppa.common.ClientException;
 import com.droppa.clone.droppa.dto.BookingDTO;
 import com.droppa.clone.droppa.dto.CoordinatesDTO;
+import com.droppa.clone.droppa.dto.PaymentDAO;
 import com.droppa.clone.droppa.enums.AccountStatus;
 import com.droppa.clone.droppa.enums.BookingStatus;
 import com.droppa.clone.droppa.models.Adress;
@@ -206,6 +207,27 @@ public class BookingService {
 			} else {
 				throw new ClientException("Something went wrong, please try again");
 			}
+		}
+	}
+
+	@Transactional
+	public Booking makePayments(PaymentDAO payment) {
+		UserAccount user = userService.getUserByEmail(payment.getUserId());
+		Booking booking = getBookingById(payment.getBookingId());
+		if (booking.getUserId().equals(payment.getUserId())) {
+			if (payment.getPaymentType().equals("Wallet")) {
+				if(user.getPerson().getWalletBalance() < payment.getBookingPrice())
+					throw new ClientException("Insufficient funds");
+				user.getPerson().setWalletBalance(user.getPerson().getWalletBalance() - payment.getBookingPrice());
+			}
+				
+			booking.setPaymentType(payment.getPaymentType());
+			booking.setPromoCodeUsed(payment.getUsedPromo());
+			booking.setStatus(BookingStatus.AWAITING_DRIVER);
+			booking.setPrice(payment.getBookingPrice());
+			return booking;
+		} else {
+			throw new ClientException("Something went wrong, please try again");
 		}
 	}
 

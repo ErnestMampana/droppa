@@ -1,19 +1,23 @@
 package com.droppa.clone.droppa.services;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import com.droppa.clone.droppa.common.ClientException;
+import com.droppa.clone.droppa.dto.CreatePromDTO;
 import com.droppa.clone.droppa.enums.AccountStatus;
 import com.droppa.clone.droppa.enums.BookingStatus;
 import com.droppa.clone.droppa.models.Booking;
 import com.droppa.clone.droppa.models.DriverAccount;
+import com.droppa.clone.droppa.models.PromoCode;
 import com.droppa.clone.droppa.models.UserAccount;
 import com.droppa.clone.droppa.repositories.AddressRespository;
 import com.droppa.clone.droppa.repositories.BookingRepository;
 import com.droppa.clone.droppa.repositories.DropDetailsrepository;
+import com.droppa.clone.droppa.repositories.PromoCodeRepository;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 import lombok.RequiredArgsConstructor;
 
@@ -31,7 +35,11 @@ public class AdminService {
 
 	private final AddressRespository addressRespository;
 
-	DropDetailsrepository dropDetailsrepository;
+	private final PartyService partyService;
+
+	private final DropDetailsrepository dropDetailsrepository;
+
+	private final PromoCodeRepository promoRepository;
 
 //	public boolean validateToken(String token) {
 //
@@ -147,6 +155,15 @@ public class AdminService {
 			throw new ClientException("Could not activate user");
 		}
 
+	}
+
+	@Transactional
+	public String generatePromoCode(CreatePromDTO promoDto) {
+		PromoCode promo = PromoCode.builder().promoCode(partyService.generatePromoCode())
+				.promoCount(promoDto.promoCount).numberOfTimesUsed(0).discountPrice(promoDto.discountPrice)
+				.expiration(promoDto.expiration).build();
+		PromoCode savedPromo = promoRepository.save(promo);
+		return savedPromo.getPromoCode();
 	}
 
 //	public String deleteBooking(String bookingId) {

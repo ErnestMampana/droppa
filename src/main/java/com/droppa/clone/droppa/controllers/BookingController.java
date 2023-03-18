@@ -7,9 +7,13 @@ import java.util.List;
 
 import com.droppa.clone.droppa.dto.BookingDTO;
 import com.droppa.clone.droppa.dto.CoordinatesDTO;
+import com.droppa.clone.droppa.dto.PaymentDAO;
+import com.droppa.clone.droppa.dto.PromoCodeDTO;
 import com.droppa.clone.droppa.enums.BookingStatus;
 import com.droppa.clone.droppa.models.Booking;
 import com.droppa.clone.droppa.services.BookingService;
+import com.droppa.clone.droppa.services.PartyService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class BookingController {
 
 	private final BookingService bookingService;
+	private final PartyService partyService;
 
 	// @Secured
 	@PostMapping("/book")
@@ -79,9 +84,20 @@ public class BookingController {
 		return new ResponseEntity<Booking>(cBooking, HttpStatus.OK);
 	}
 
+	@PutMapping("/makePayment")
+	public ResponseEntity<Booking> makePayments(@RequestBody PaymentDAO payment) {
+		Booking cBooking = bookingService.makePayments(payment);
+		return new ResponseEntity<Booking>(cBooking, HttpStatus.OK);
+	}
+
 	@PostMapping("/getprice")
 	public ResponseEntity<Double> requestPrice(@RequestBody CoordinatesDTO coordinates) {
 		return new ResponseEntity<Double>(bookingService.requestPrice(coordinates), HttpStatus.OK);
+	}
+
+	@PostMapping("/applypromocode")
+	public ResponseEntity<Double> applyPromCode(@RequestBody PromoCodeDTO promocodeDto) {
+		return new ResponseEntity<Double>(partyService.applyPromocode(promocodeDto),HttpStatus.OK);
 	}
 
 }
