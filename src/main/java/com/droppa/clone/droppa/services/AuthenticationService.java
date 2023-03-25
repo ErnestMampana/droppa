@@ -1,12 +1,8 @@
 package com.droppa.clone.droppa.services;
 
-import com.droppa.clone.droppa.auth.AuthenticationResponse;
 import com.droppa.clone.droppa.common.ClientException;
-import com.droppa.clone.droppa.dto.AuthenticationRequest;
 import com.droppa.clone.droppa.dto.CredentialsDTO;
-import com.droppa.clone.droppa.dto.OtpDTO;
 import com.droppa.clone.droppa.dto.PersonDTO;
-import com.droppa.clone.droppa.dto.RegisterRequest;
 import com.droppa.clone.droppa.dto.UserResponseDTO;
 import com.droppa.clone.droppa.enums.AccountStatus;
 import com.droppa.clone.droppa.enums.Role;
@@ -17,16 +13,16 @@ import com.droppa.clone.droppa.models.UserAccount;
 import com.droppa.clone.droppa.repositories.PersonRepository;
 import com.droppa.clone.droppa.repositories.TokenRepository;
 import com.droppa.clone.droppa.repositories.UserAccountRepository;
-import com.droppa.clone.droppa.services.JwtService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Optional;
-import org.hibernate.boot.model.naming.IllegalIdentifierException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +37,7 @@ public class AuthenticationService {
 	private final JwtService jwtService;
 	private final AuthenticationManager authenticationManager;
 
-	public OtpDTO createUserAccount(PersonDTO person) {
+	public UserResponseDTO createUserAccount(PersonDTO person) {
 		try {
 			log.info("===================== Requesting Account create.");
 			Optional<UserAccount> userAccount = userAccountRepository.findByEmail(person.getEmail());
@@ -75,8 +71,10 @@ public class AuthenticationService {
 			log.info("================================= Account created for " + savedUser.getPerson().getUserName()
 					+ " " + savedUser.getPerson().getSurname());
 
-//			return AuthenticationResponse.builder().token(jwtToken).build();
-			return OtpDTO.builder().otp(otp).build();
+			return UserResponseDTO.builder().celphoneNumber(savedUser.getPerson().getCellphone())
+					.surname(savedUser.getPerson().getSurname()).userName(savedUser.getPerson().getUserName())
+					.token(jwtToken).myBookings(null).walletBalance(savedUser.getPerson().getWalletBalance())
+					.userId(savedUser.getEmail()).build();
 
 		} catch (Exception e) {
 			throw new ClientException(e.getMessage());

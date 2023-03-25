@@ -27,7 +27,7 @@ public class AuthenticationController {
 	private final AuthenticationService service;
 
 	@PostMapping("/register")
-	public ResponseEntity<OtpDTO> register(@RequestBody PersonDTO request) {
+	public ResponseEntity<UserResponseDTO> register(@RequestBody PersonDTO request) {
 		return ResponseEntity.ok(service.createUserAccount(request));
 	}
 

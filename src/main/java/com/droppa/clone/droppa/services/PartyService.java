@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.logging.Logger;
 
+import org.joda.time.Days;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,7 +78,8 @@ public class PartyService {
 		double discountedPrice = 0.0;
 		Optional<PromoCode> promoOptional = promoCodeRepository.findByPromoCode(promoData.promoCode);
 		if (promoOptional.isPresent()) {
-			if (promoOptional.get().getExpiration().isAfter(LocalDate.of(2023, 03, 18)))
+			//Days.daysBetween(start, end).getDays();
+			if (LocalDate.now().isAfter(promoOptional.get().getExpiration()))
 				throw new ClientException("This promo code has EXPIRED");
 			if (promoOptional.get().getNumberOfTimesUsed() < promoOptional.get().getPromoCount()) {
 				discountedPrice = promoData.bookingPrice - promoOptional.get().getDiscountPrice();

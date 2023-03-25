@@ -219,8 +219,7 @@ public class BookingService {
 				if(user.getPerson().getWalletBalance() < payment.getBookingPrice())
 					throw new ClientException("Insufficient funds");
 				user.getPerson().setWalletBalance(user.getPerson().getWalletBalance() - payment.getBookingPrice());
-			}
-				
+			}				
 			booking.setPaymentType(payment.getPaymentType());
 			booking.setPromoCodeUsed(payment.getUsedPromo());
 			booking.setStatus(BookingStatus.AWAITING_DRIVER);

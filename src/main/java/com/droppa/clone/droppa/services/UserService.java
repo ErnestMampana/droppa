@@ -15,6 +15,9 @@ import com.droppa.clone.droppa.models.UserAccount;
 import com.droppa.clone.droppa.repositories.PersonRepository;
 import com.droppa.clone.droppa.repositories.TokenRepository;
 import com.droppa.clone.droppa.repositories.UserAccountRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,10 +29,8 @@ public class UserService {
 
 	private final UserAccountRepository userAccountRepository;
 	private final PartyService partyService;
-	private final PersonRepository personRepository;
-	private final JwtService jwtService;
-	private AuthenticationService authService;
 	private final TokenRepository tokenRepository;
+	private final PasswordEncoder passwordEncoder;
 
 	public List<UserAccount> getAllUsers() {
 		return userAccountRepository.findAll();
@@ -56,7 +57,7 @@ public class UserService {
 			message = "Account Activated";
 
 			Token tokenData = tokenRepository.findByUserId(user.getId()).get();
-
+			
 			return UserResponseDTO.builder().celphoneNumber(user.getPerson().getCellphone())
 					.surname(user.getPerson().getSurname()).userName(user.getPerson().getUserName())
 					.token(tokenData.getToken()).myBookings(null).walletBalance(user.getPerson().getWalletBalance())
@@ -104,7 +105,7 @@ public class UserService {
 		if (userAcc.getStatus().equals(AccountStatus.AWAITING_PWD_RESET)) {
 			if (userAcc.getOtp() == otp) {
 				userAcc.setOtp(0);
-				userAcc.setPassword(password);
+				userAcc.setPassword(passwordEncoder.encode(password));
 				userAcc.setStatus(AccountStatus.ACTIVE);
 			}
 		}
@@ -130,22 +131,5 @@ public class UserService {
 		}
 
 	}
-
-	private void saveUserToken(UserAccount user, String jwtToken) {
-		var token = Token.builder().user(user).token(jwtToken).tokenType(TokenType.BEARER).expired(false).revoked(false)
-				.build();
-		tokenRepository.save(token);
-	}
-
-//	  private void revokeAllUserTokens(UserAccount user) {
-//		    var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
-//		    if (validUserTokens.isEmpty())
-//		      return;
-//		    validUserTokens.forEach(token -> {
-//		      token.setExpired(true);
-//		      token.setRevoked(true);
-//		    });
-//		    tokenRepository.saveAll(validUserTokens);
-//		  }
 
 }
