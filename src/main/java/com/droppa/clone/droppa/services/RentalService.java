@@ -5,6 +5,7 @@ package com.droppa.clone.droppa.services;
 
 import java.util.Optional;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import com.droppa.clone.droppa.common.ClientException;
@@ -37,6 +38,8 @@ public class RentalService {
 	private final PartyService partyService;
 
 	private final UserService userService;
+	
+	private final ModelMapper modelMapper;
 
 	public Rental createRental(RentalDTO rentalData) {
 
@@ -58,16 +61,22 @@ public class RentalService {
 					found = false;
 				}
 			}
-			Rental rental = Rental.builder().userId(rentalData.getUserId()).streetAddress(rentalData.getStreetAddress())
-					.postalCode(rentalData.getPostalCode()).suburb(rentalData.getSuburb())
-					.province(rentalData.getProvince()).complexName(rentalData.getComplexName())
-					.unitNumber(rentalData.getUnitNumber()).startDate(rentalData.getStartDate())
-					.endDate(rentalData.getEndDate()).truckType(rentalData.getTruckType()).price(rentalData.getPrice())
-					.companyName(rentalData.getCompanyName()).contactPerson(rentalData.getContactPerson())
-					.mobileNumber(rentalData.getMobileNumber()).rentalBunch(rentalData.getRentalBunch())
-					.labours(rentalData.getLabours()).noDays(rentalData.getNoDays())
-					.instruction(rentalData.getInstruction()).status(RentalStatus.AWAITING_PAYMENT).rentalId(rentalId)
-					.build();
+			
+			Rental rental = modelMapper.map(rentalData, Rental.class);
+			rental.setStatus(RentalStatus.AWAITING_PAYMENT);
+			rental.setRentalId(rentalId);
+			
+			rentalRepository.save(rental);
+//			Rental rental = Rental.builder().userId(rentalData.getUserId()).streetAddress(rentalData.getStreetAddress())
+//					.postalCode(rentalData.getPostalCode()).suburb(rentalData.getSuburb())
+//					.province(rentalData.getProvince()).complexName(rentalData.getComplexName())
+//					.unitNumber(rentalData.getUnitNumber()).startDate(rentalData.getStartDate())
+//					.endDate(rentalData.getEndDate()).truckType(rentalData.getTruckType()).price(rentalData.getPrice())
+//					.companyName(rentalData.getCompanyName()).contactPerson(rentalData.getContactPerson())
+//					.mobileNumber(rentalData.getMobileNumber()).rentalBunch(rentalData.getRentalBunch())
+//					.labours(rentalData.getLabours()).noDays(rentalData.getNoDays())
+//					.instruction(rentalData.getInstruction()).status(RentalStatus.AWAITING_PAYMENT).rentalId(rentalId)
+//					.build();
 
 			return rental;
 		} else {

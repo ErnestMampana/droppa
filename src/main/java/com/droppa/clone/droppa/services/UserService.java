@@ -17,6 +17,7 @@ import com.droppa.clone.droppa.repositories.TokenRepository;
 import com.droppa.clone.droppa.repositories.UserAccountRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,7 @@ public class UserService {
 	private final PartyService partyService;
 	private final TokenRepository tokenRepository;
 	private final PasswordEncoder passwordEncoder;
+	private final ModelMapper modelMapper;
 
 	public List<UserAccount> getAllUsers() {
 		return userAccountRepository.findAll();
@@ -57,11 +59,12 @@ public class UserService {
 			message = "Account Activated";
 
 			Token tokenData = tokenRepository.findByUserId(user.getId()).get();
-			
-			return UserResponseDTO.builder().celphoneNumber(user.getPerson().getCellphone())
+
+			return UserResponseDTO.builder().cellphone(user.getPerson().getCellphone())
 					.surname(user.getPerson().getSurname()).userName(user.getPerson().getUserName())
 					.token(tokenData.getToken()).myBookings(null).walletBalance(user.getPerson().getWalletBalance())
-					.userId(user.getEmail()).build();
+					.email(user.getEmail()).build();
+
 		} else {
 			message = "invalid otp";
 			throw new ClientException(message);

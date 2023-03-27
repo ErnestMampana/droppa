@@ -17,6 +17,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,6 +38,8 @@ public class AuthenticationService {
 	private final PasswordEncoder passwordEncoder;
 	private final JwtService jwtService;
 	private final AuthenticationManager authenticationManager;
+	private final ModelMapper modelMapper;
+	private final UserService userService;
 
 	public UserResponseDTO createUserAccount(PersonDTO person) {
 		try {
@@ -51,10 +55,10 @@ public class AuthenticationService {
 				if (pers.get().getEmail().equals(person.getEmail()))
 					throw new ClientException("person exist");
 
-			int otp = partyService.generateOTP(person.getCellphone());
+			int otp = partyService.generateOTP(person.getEmail());
 
-			var owner = Person.builder().userName(person.getUserName()).surname(person.getSurname())
-					.cellphone(person.getCellphone()).walletBalance(00.0).email(person.getEmail()).build();
+			Person owner = modelMapper.map(person, Person.class);
+			owner.setWalletBalance(0);			
 
 			var acc = UserAccount.builder().email(owner.getEmail()).person(owner).confirmed(false).otp(otp)
 					.status(AccountStatus.AWAITING_CONFIRMATION).password(passwordEncoder.encode(person.getPassword()))
@@ -64,17 +68,16 @@ public class AuthenticationService {
 
 			UserAccount savedUser = userAccountRepository.save(acc);
 
+			log.info("================================= Account created for " + savedUser.getPerson().getUserName()
+					+ " " + savedUser.getPerson().getSurname());
+			
 			var jwtToken = jwtService.generateToken(acc);
 
 			saveUserToken(savedUser, jwtToken);
 
-			log.info("================================= Account created for " + savedUser.getPerson().getUserName()
-					+ " " + savedUser.getPerson().getSurname());
+			UserResponseDTO userResponse = modelMapper.map(owner, UserResponseDTO.class);
 
-			return UserResponseDTO.builder().celphoneNumber(savedUser.getPerson().getCellphone())
-					.surname(savedUser.getPerson().getSurname()).userName(savedUser.getPerson().getUserName())
-					.token(jwtToken).myBookings(null).walletBalance(savedUser.getPerson().getWalletBalance())
-					.userId(savedUser.getEmail()).build();
+			return userResponse;
 
 		} catch (Exception e) {
 			throw new ClientException(e.getMessage());
@@ -83,7 +86,7 @@ public class AuthenticationService {
 
 	public UserResponseDTO authenticate(CredentialsDTO request) {
 
-		var user = userAccountRepository.findByEmail(request.getUsername()).orElseThrow();
+		var user = userService.getUserByEmail(request.getUsername());
 
 		if (user.isConfirmed()) {
 			if (user.getStatus().equals(AccountStatus.ACTIVE)) {
@@ -115,10 +118,13 @@ public class AuthenticationService {
 
 		saveUserToken(user, jwtToken);
 
-		// return AuthenticationResponse.builder().token(jwtToken).build();
-		return UserResponseDTO.builder().celphoneNumber(user.getPerson().getCellphone())
-				.surname(user.getPerson().getSurname()).userName(user.getPerson().getUserName()).token(jwtToken)
-				.myBookings(null).walletBalance(user.getPerson().getWalletBalance()).userId(user.getEmail()).build();
+		Person owner = user.getPerson();
+
+		UserResponseDTO userResponseDTO = modelMapper.map(owner, UserResponseDTO.class);
+
+		userResponseDTO.setToken(jwtToken);
+
+		return userResponseDTO;
 	}
 
 	private void saveUserToken(UserAccount user, String jwtToken) {

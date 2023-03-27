@@ -11,9 +11,10 @@ import com.droppa.clone.droppa.dto.VehicleDTO;
 import com.droppa.clone.droppa.models.Company;
 import com.droppa.clone.droppa.models.Vehicle;
 import com.droppa.clone.droppa.repositories.VehicleRepository;
+
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,6 +29,8 @@ public class VehicleService {
 	private final VehicleRepository vehicleRepo;
 
 	private CompanyService companyService;
+
+	private ModelMapper modelMapper;
 
 	public Vehicle getVehicleByRegistration(String vehicleReg) {
 		Optional<Vehicle> vehicleOptional = vehicleRepo.findByRegistration(vehicleReg);
@@ -50,14 +53,8 @@ public class VehicleService {
 			throw new ClientException("This vehicle is already registered.");
 		}
 
-		var vehicle = Vehicle.builder()
-				.registration(vehicleDto.getRegistration())
-				.make(vehicleDto.getMake())
-				.type(vehicleDto.getType())
-				.discExpiryDate(vehicleDto.getDiscExpiryDate())
-				.drivers(null)
-				.company(company).build();
-
+		Vehicle vehicle = modelMapper.map(vehicleDto, Vehicle.class);
+		vehicle.setCompany(company);
 
 		vehicleRepo.save(vehicle);
 

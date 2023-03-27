@@ -22,10 +22,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserResponseDTO {
 
-	private String userId;
+	private String email;
 	private String userName;
 	private String surname;
-	private String celphoneNumber;
+	private String cellphone;
 	private Double walletBalance;
 	private List<Booking> myBookings;
 	private String token;

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.droppa.clone.droppa.common.ClientException;
+import com.droppa.clone.droppa.dto.EmailDetails;
 import com.droppa.clone.droppa.dto.PromoCodeDTO;
 import com.droppa.clone.droppa.models.PromoCode;
 import com.droppa.clone.droppa.repositories.PromoCodeRepository;
@@ -26,19 +27,28 @@ public class PartyService {
 	private static final Logger logger = Logger.getLogger(PartyService.class.getName());
 	private static final SecureRandom secureRandom = new SecureRandom();
 	private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
+	private final EmailServiceImp emailServiceImp;
 
-	public int generateOTP(String mobileNumber) {
+	public int generateOTP(String email) {
 		final int max = 99999;
 		final int min = 10000;
 		Random random = new Random();
 		int otp = random.nextInt((max - min) + 1) + min;
-		logger.info("==================== OTP " + otp + " sent to mobile number " + mobileNumber);
+
+		String message = "Welcome to DroppClone.\nUse the code below to activate your account.\nCode : " + otp;
+
+		EmailDetails mailDetails = EmailDetails.builder().recipient(email).msgBody(message).subject("Promo Code")
+				.build();
+
+		//emailServiceImp.sendSimpleMail(mailDetails);
+
+		logger.info("==================== OTP " + otp + " sent to email " + email);
 		return otp;
 	}
 
 	public String randomChars(int length) {
 		String candidateChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-
+		emailServiceImp.sendSimpleMail(null);
 		StringBuilder sb = new StringBuilder();
 		Random random = new Random();
 		for (int i = 0; i < length; i++) {
@@ -78,7 +88,7 @@ public class PartyService {
 		double discountedPrice = 0.0;
 		Optional<PromoCode> promoOptional = promoCodeRepository.findByPromoCode(promoData.promoCode);
 		if (promoOptional.isPresent()) {
-			//Days.daysBetween(start, end).getDays();
+			// Days.daysBetween(start, end).getDays();
 			if (LocalDate.now().isAfter(promoOptional.get().getExpiration()))
 				throw new ClientException("This promo code has EXPIRED");
 			if (promoOptional.get().getNumberOfTimesUsed() < promoOptional.get().getPromoCount()) {
