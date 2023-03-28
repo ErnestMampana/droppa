@@ -5,6 +5,7 @@ package com.droppa.clone.droppa.services;
 
 import java.util.Optional;
 
+import com.droppa.clone.droppa.dto.PaymentDAO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,7 @@ import com.droppa.clone.droppa.repositories.UserAccountRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ernest Mampana
@@ -61,22 +63,12 @@ public class RentalService {
 					found = false;
 				}
 			}
-			
+			modelMapper.getConfiguration().setAmbiguityIgnored(true);
 			Rental rental = modelMapper.map(rentalData, Rental.class);
 			rental.setStatus(RentalStatus.AWAITING_PAYMENT);
 			rental.setRentalId(rentalId);
 			
 			rentalRepository.save(rental);
-//			Rental rental = Rental.builder().userId(rentalData.getUserId()).streetAddress(rentalData.getStreetAddress())
-//					.postalCode(rentalData.getPostalCode()).suburb(rentalData.getSuburb())
-//					.province(rentalData.getProvince()).complexName(rentalData.getComplexName())
-//					.unitNumber(rentalData.getUnitNumber()).startDate(rentalData.getStartDate())
-//					.endDate(rentalData.getEndDate()).truckType(rentalData.getTruckType()).price(rentalData.getPrice())
-//					.companyName(rentalData.getCompanyName()).contactPerson(rentalData.getContactPerson())
-//					.mobileNumber(rentalData.getMobileNumber()).rentalBunch(rentalData.getRentalBunch())
-//					.labours(rentalData.getLabours()).noDays(rentalData.getNoDays())
-//					.instruction(rentalData.getInstruction()).status(RentalStatus.AWAITING_PAYMENT).rentalId(rentalId)
-//					.build();
 
 			return rental;
 		} else {
@@ -92,6 +84,26 @@ public class RentalService {
 			return rentalOptional.get();
 		} else {
 			throw new ClientException("Rental booking not found");
+		}
+	}
+
+	@Transactional
+	public Rental makePayments(PaymentDAO payment) {
+		UserAccount user = userService.getUserByEmail(payment.getUserId());
+		Rental rentalBooking = getBookingById(payment.getBookingId());
+		if (rentalBooking.getUserId().equals(payment.getUserId())) {
+			if (payment.getPaymentType().equals("Wallet")) {
+				if(user.getPerson().getWalletBalance() < payment.getBookingPrice())
+					throw new ClientException("Insufficient funds");
+				user.getPerson().setWalletBalance(user.getPerson().getWalletBalance() - payment.getBookingPrice());
+			}
+			rentalBooking.setPaymentType(payment.getPaymentType());
+			rentalBooking.setPromoCodeUsed(payment.getUsedPromo());
+			rentalBooking.setStatus(RentalStatus.AWAITING_DRIVER);
+			rentalBooking.setPrice(payment.getBookingPrice());
+			return rentalBooking;
+		} else {
+			throw new ClientException("Something went wrong, please try again");
 		}
 	}
 

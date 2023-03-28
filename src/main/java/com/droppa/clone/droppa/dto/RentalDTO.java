@@ -17,8 +17,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RentalDTO {
-
 	private String userId;
+	private String rentalId;
 	private String streetAddress;
 	private int postalCode;
 	private String suburb;
@@ -32,7 +32,7 @@ public class RentalDTO {
 	private String companyName;
 	private String contactPerson;
 	private String mobileNumber;
-	private String rentalBunch;
+	private String rentalBrunch;
 	private int labours;
 	private int noDays;
 	private String instruction;
