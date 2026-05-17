@@ -1,13 +1,13 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.controllers;
+package com.droppa.controllers;
 
 import java.util.List;
 
-import com.droppa.clone.droppa.dto.VehicleDTO;
-import com.droppa.clone.droppa.models.Vehicle;
-import com.droppa.clone.droppa.services.VehicleService;
+import com.droppa.dto.VehicleDTO;
+import com.droppa.models.Vehicle;
+import com.droppa.services.VehicleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

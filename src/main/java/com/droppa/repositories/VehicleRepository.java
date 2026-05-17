@@ -1,11 +1,11 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.repositories;
+package com.droppa.repositories;
 
 import java.util.Optional;
 
-import com.droppa.clone.droppa.models.Vehicle;
+import com.droppa.models.Vehicle;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 

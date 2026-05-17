@@ -1,7 +1,9 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.dto;
+package com.droppa.dto;
+
+import java.math.BigDecimal;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,6 +24,6 @@ public class PaymentDAO {
 	private String bookingId;
 	private String paymentType;
 	private String usedPromo;
-	private double bookingPrice;
+	private BigDecimal bookingPrice;
 
 }

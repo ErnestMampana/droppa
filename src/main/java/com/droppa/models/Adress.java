@@ -1,4 +1,4 @@
-package com.droppa.clone.droppa.models;
+package com.droppa.models;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

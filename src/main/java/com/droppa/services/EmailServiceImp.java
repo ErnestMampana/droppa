@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.services;
+package com.droppa.services;
 
 import java.io.File;
 
@@ -12,8 +12,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import com.droppa.clone.droppa.dto.EmailDetails;
-import com.droppa.clone.droppa.interfaces.EmailService;
+import com.droppa.dto.EmailDetails;
+import com.droppa.interfaces.EmailService;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;

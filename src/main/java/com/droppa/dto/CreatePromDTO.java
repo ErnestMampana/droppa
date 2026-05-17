@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.dto;
+package com.droppa.dto;
 
 import java.time.LocalDate;
 

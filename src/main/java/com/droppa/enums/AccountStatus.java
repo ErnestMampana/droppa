@@ -1,10 +1,10 @@
-package com.droppa.clone.droppa.enums;
+package com.droppa.enums;
 
 public enum AccountStatus {
 	ACTIVE("Active"), 
 	SUSPENDED("Suspended"), 
 	AWAITING_CONFIRMATION("Awaiting Confirmation"),
-	AWAITING_PWD_RESET("Awaiting Password Reset"), 
+	AWAITING_PWD_RESET("Awaiting Password Reset."), 
 	DELETED("Deleted");
 
 	private String description;

@@ -1,4 +1,4 @@
-package com.droppa.clone.droppa;
+package com.droppa;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

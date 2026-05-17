@@ -1,18 +1,18 @@
-package com.droppa.clone.droppa.services;
+package com.droppa.services;
 
-import com.droppa.clone.droppa.common.ClientException;
-import com.droppa.clone.droppa.dto.CredentialsDTO;
-import com.droppa.clone.droppa.dto.PersonDTO;
-import com.droppa.clone.droppa.dto.UserResponseDTO;
-import com.droppa.clone.droppa.enums.AccountStatus;
-import com.droppa.clone.droppa.enums.Role;
-import com.droppa.clone.droppa.enums.TokenType;
-import com.droppa.clone.droppa.models.Person;
-import com.droppa.clone.droppa.models.Token;
-import com.droppa.clone.droppa.models.UserAccount;
-import com.droppa.clone.droppa.repositories.PersonRepository;
-import com.droppa.clone.droppa.repositories.TokenRepository;
-import com.droppa.clone.droppa.repositories.UserAccountRepository;
+import com.droppa.common.ClientException;
+import com.droppa.dto.CredentialsDTO;
+import com.droppa.dto.PersonDTO;
+import com.droppa.dto.UserResponseDTO;
+import com.droppa.enums.AccountStatus;
+import com.droppa.enums.Role;
+import com.droppa.enums.TokenType;
+import com.droppa.models.Person;
+import com.droppa.models.Token;
+import com.droppa.models.UserAccount;
+import com.droppa.repositories.PersonRepository;
+import com.droppa.repositories.TokenRepository;
+import com.droppa.repositories.UserAccountRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +24,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @Service
@@ -58,7 +59,7 @@ public class AuthenticationService {
 			int otp = partyService.generateOTP(person.getEmail());
 
 			Person owner = modelMapper.map(person, Person.class);
-			owner.setWalletBalance(0);			
+			owner.setWalletBalance(BigDecimal.ZERO);			
 
 			var acc = UserAccount.builder().email(owner.getEmail()).person(owner).confirmed(false).otp(otp)
 					.status(AccountStatus.AWAITING_CONFIRMATION).password(passwordEncoder.encode(person.getPassword()))

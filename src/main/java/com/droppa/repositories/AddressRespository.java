@@ -1,9 +1,9 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.repositories;
+package com.droppa.repositories;
 
-import com.droppa.clone.droppa.models.Adress;
+import com.droppa.models.Adress;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 

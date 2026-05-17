@@ -1,5 +1,7 @@
-package com.droppa.clone.droppa.models;
+package com.droppa.models;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -7,8 +9,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.droppa.clone.droppa.enums.AccountStatus;
-import com.droppa.clone.droppa.enums.Role;
+import com.droppa.enums.AccountStatus;
+import com.droppa.enums.Role;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -31,7 +33,8 @@ public class UserAccount implements UserDetails {
 	@OneToOne
 	private Person person;
 	private boolean confirmed;
-	private int otp;
+	private String otp;
+	private LocalDateTime OtpExpiry;
 	@Enumerated(EnumType.STRING)
 	private AccountStatus status;
 	private String password;

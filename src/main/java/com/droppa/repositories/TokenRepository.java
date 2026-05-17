@@ -1,9 +1,9 @@
-package com.droppa.clone.droppa.repositories;
+package com.droppa.repositories;
 
 import java.util.List;
 import java.util.Optional;
 
-import com.droppa.clone.droppa.models.Token;
+import com.droppa.models.Token;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

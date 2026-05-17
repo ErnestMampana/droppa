@@ -1,4 +1,4 @@
-package com.droppa.clone.droppa.services;
+package com.droppa.services;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
@@ -11,39 +11,65 @@ import org.joda.time.Days;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.droppa.clone.droppa.common.ClientException;
-import com.droppa.clone.droppa.dto.EmailDetails;
-import com.droppa.clone.droppa.dto.PromoCodeDTO;
-import com.droppa.clone.droppa.models.PromoCode;
-import com.droppa.clone.droppa.repositories.PromoCodeRepository;
+import com.droppa.common.ClientException;
+import com.droppa.dto.EmailDetails;
+import com.droppa.dto.PromoCodeDTO;
+import com.droppa.models.PromoCode;
+import com.droppa.repositories.PromoCodeRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PartyService {
 
 	private final PromoCodeRepository promoCodeRepository;
-	private static final Logger logger = Logger.getLogger(PartyService.class.getName());
 	private static final SecureRandom secureRandom = new SecureRandom();
 	private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 	private final EmailServiceImp emailServiceImp;
 
-	public int generateOTP(String email) {
-		final int max = 99999;
-		final int min = 10000;
-		Random random = new Random();
-		int otp = random.nextInt((max - min) + 1) + min;
+//	public int generateOTP(String email) {
+//		final int max = 99999;
+//		final int min = 10000;
+//		Random random = new Random();
+//		int otp = random.nextInt((max - min) + 1) + min;
+//
+//		String message = "Welcome to DroppClone.\nUse the code below to activate your account.\nCode : " + otp;
+//
+//		EmailDetails mailDetails = EmailDetails.builder().recipient(email).msgBody(message).subject("Promo Code")
+//				.build();
+//
+//		//emailServiceImp.sendSimpleMail(mailDetails);
+//
+//		logger.info("==================== OTP " + otp + " sent to email " + email);
+//		return otp;
+//	}
+	
+	public String generateOTP(String email) {
 
-		String message = "Welcome to DroppClone.\nUse the code below to activate your account.\nCode : " + otp;
+	    SecureRandom secureRandom = new SecureRandom();
 
-		EmailDetails mailDetails = EmailDetails.builder().recipient(email).msgBody(message).subject("Promo Code")
-				.build();
+	    int otp = 10000 + secureRandom.nextInt(90000);
 
-		//emailServiceImp.sendSimpleMail(mailDetails);
+	    String otpCode = String.valueOf(otp);
 
-		logger.info("==================== OTP " + otp + " sent to email " + email);
-		return otp;
+	    String message = "Welcome to DroppClone.\n"
+	            + "Use the code below to activate your account.\n"
+	            + "Code: " + otpCode;
+
+	    EmailDetails mailDetails = EmailDetails.builder()
+	            .recipient(email)
+	            .msgBody(message)
+	            .subject("Account Verification Code")
+	            .build();
+
+	    emailServiceImp.sendSimpleMail(mailDetails);
+
+	    log.info("OTP generated and sent to email {}", email);
+
+	    return otpCode;
 	}
 
 	public String randomChars(int length) {

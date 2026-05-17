@@ -1,15 +1,15 @@
-package com.droppa.clone.droppa.controllers;
+package com.droppa.controllers;
 
-import com.droppa.clone.droppa.auth.AuthenticationResponse;
-import com.droppa.clone.droppa.common.ClientException;
-import com.droppa.clone.droppa.dto.AuthenticationRequest;
-import com.droppa.clone.droppa.dto.CredentialsDTO;
-import com.droppa.clone.droppa.dto.OtpDTO;
-import com.droppa.clone.droppa.dto.PersonDTO;
-import com.droppa.clone.droppa.dto.RegisterRequest;
-import com.droppa.clone.droppa.dto.UserResponseDTO;
-import com.droppa.clone.droppa.models.UserAccount;
-import com.droppa.clone.droppa.services.AuthenticationService;
+import com.droppa.auth.AuthenticationResponse;
+import com.droppa.common.ClientException;
+import com.droppa.dto.AuthenticationRequest;
+import com.droppa.dto.CredentialsDTO;
+import com.droppa.dto.OtpDTO;
+import com.droppa.dto.PersonDTO;
+import com.droppa.dto.RegisterRequest;
+import com.droppa.dto.UserResponseDTO;
+import com.droppa.models.UserAccount;
+import com.droppa.services.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -1,6 +1,6 @@
-package com.droppa.clone.droppa.config;
+package com.droppa.config;
 
-import com.droppa.clone.droppa.auth.JwtAuthenticationFilter;
+import com.droppa.auth.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

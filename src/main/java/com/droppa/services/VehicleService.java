@@ -1,16 +1,16 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.services;
+package com.droppa.services;
 
 import java.util.List;
 import java.util.Optional;
 
-import com.droppa.clone.droppa.common.ClientException;
-import com.droppa.clone.droppa.dto.VehicleDTO;
-import com.droppa.clone.droppa.models.Company;
-import com.droppa.clone.droppa.models.Vehicle;
-import com.droppa.clone.droppa.repositories.VehicleRepository;
+import com.droppa.common.ClientException;
+import com.droppa.dto.VehicleDTO;
+import com.droppa.models.Company;
+import com.droppa.models.Vehicle;
+import com.droppa.repositories.VehicleRepository;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;

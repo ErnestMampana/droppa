@@ -1,11 +1,12 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.dto;
+package com.droppa.dto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
-import com.droppa.clone.droppa.models.Booking;
+import com.droppa.models.Booking;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,7 +27,7 @@ public class UserResponseDTO {
 	private String userName;
 	private String surname;
 	private String cellphone;
-	private Double walletBalance;
+	private BigDecimal walletBalance;
 	private List<Booking> myBookings;
 	private String token;
 }

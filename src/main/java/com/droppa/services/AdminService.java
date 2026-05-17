@@ -1,20 +1,20 @@
-package com.droppa.clone.droppa.services;
+package com.droppa.services;
 
 import java.time.LocalDate;
 import java.util.List;
 
-import com.droppa.clone.droppa.common.ClientException;
-import com.droppa.clone.droppa.dto.CreatePromDTO;
-import com.droppa.clone.droppa.enums.AccountStatus;
-import com.droppa.clone.droppa.enums.BookingStatus;
-import com.droppa.clone.droppa.models.Booking;
-import com.droppa.clone.droppa.models.DriverAccount;
-import com.droppa.clone.droppa.models.PromoCode;
-import com.droppa.clone.droppa.models.UserAccount;
-import com.droppa.clone.droppa.repositories.AddressRespository;
-import com.droppa.clone.droppa.repositories.BookingRepository;
-import com.droppa.clone.droppa.repositories.DropDetailsrepository;
-import com.droppa.clone.droppa.repositories.PromoCodeRepository;
+import com.droppa.common.ClientException;
+import com.droppa.dto.CreatePromDTO;
+import com.droppa.enums.AccountStatus;
+import com.droppa.enums.BookingStatus;
+import com.droppa.models.Booking;
+import com.droppa.models.DriverAccount;
+import com.droppa.models.PromoCode;
+import com.droppa.models.UserAccount;
+import com.droppa.repositories.AddressRespository;
+import com.droppa.repositories.BookingRepository;
+import com.droppa.repositories.DropDetailsrepository;
+import com.droppa.repositories.PromoCodeRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

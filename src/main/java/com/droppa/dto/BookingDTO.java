@@ -1,8 +1,9 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.dto;
+package com.droppa.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import lombok.AllArgsConstructor;
@@ -59,7 +60,7 @@ public class BookingDTO {
 	private int labours;
 	private String trackNumber;
 	private String itemsToBeDelivered;
-	private double bookingPrice;
+	private BigDecimal bookingPrice;
 	private String time;
 	private boolean isPaid;
 

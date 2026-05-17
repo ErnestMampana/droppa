@@ -1,18 +1,18 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.controllers;
+package com.droppa.controllers;
 
 import java.util.List;
 
-import com.droppa.clone.droppa.dto.BookingDTO;
-import com.droppa.clone.droppa.dto.CoordinatesDTO;
-import com.droppa.clone.droppa.dto.PaymentDAO;
-import com.droppa.clone.droppa.dto.PromoCodeDTO;
-import com.droppa.clone.droppa.enums.BookingStatus;
-import com.droppa.clone.droppa.models.Booking;
-import com.droppa.clone.droppa.services.BookingService;
-import com.droppa.clone.droppa.services.PartyService;
+import com.droppa.dto.BookingDTO;
+import com.droppa.dto.CoordinatesDTO;
+import com.droppa.dto.PaymentDAO;
+import com.droppa.dto.PromoCodeDTO;
+import com.droppa.enums.BookingStatus;
+import com.droppa.models.Booking;
+import com.droppa.services.BookingService;
+import com.droppa.services.PartyService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -86,7 +86,7 @@ public class BookingController {
 
 	@PutMapping("/makePayment")
 	public ResponseEntity<Booking> makePayments(@RequestBody PaymentDAO payment) {
-		Booking cBooking = bookingService.makePayments(payment);
+		Booking cBooking = bookingService.makePayment(payment);
 		return new ResponseEntity<Booking>(cBooking, HttpStatus.OK);
 	}
 

@@ -1,13 +1,13 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.repositories;
+package com.droppa.repositories;
 
 import java.util.List;
 import java.util.Optional;
 
-import com.droppa.clone.droppa.enums.BookingStatus;
-import com.droppa.clone.droppa.models.Booking;
+import com.droppa.enums.BookingStatus;
+import com.droppa.models.Booking;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**

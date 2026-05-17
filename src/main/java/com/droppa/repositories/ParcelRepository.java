@@ -1,11 +1,11 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.repositories;
+package com.droppa.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.droppa.clone.droppa.models.Parcel;
+import com.droppa.models.Parcel;
 
 /**
  * @author Ernest Mampana

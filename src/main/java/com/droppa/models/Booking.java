@@ -1,12 +1,13 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.models;
+package com.droppa.models;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import com.droppa.clone.droppa.enums.BookingStatus;
-import com.droppa.clone.droppa.enums.VehicleType;
+import com.droppa.enums.BookingStatus;
+import com.droppa.enums.VehicleType;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -34,7 +35,7 @@ public class Booking {
 	//@OneToOne
 	private String dropOffAdress;
 	private LocalDate bookingDate;
-	private double price;
+	private BigDecimal price;
 	private String assinedDriver;
 	@Enumerated(EnumType.STRING)
 	private BookingStatus status;

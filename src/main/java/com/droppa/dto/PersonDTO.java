@@ -1,4 +1,4 @@
-package com.droppa.clone.droppa.dto;
+package com.droppa.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

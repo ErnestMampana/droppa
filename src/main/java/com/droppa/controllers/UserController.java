@@ -1,11 +1,12 @@
-package com.droppa.clone.droppa.controllers;
+package com.droppa.controllers;
 
+import java.math.BigDecimal;
 import java.util.List;
 
-import com.droppa.clone.droppa.dto.UserResponseDTO;
-import com.droppa.clone.droppa.models.Person;
-import com.droppa.clone.droppa.models.UserAccount;
-import com.droppa.clone.droppa.services.UserService;
+import com.droppa.dto.UserResponseDTO;
+import com.droppa.models.Person;
+import com.droppa.models.UserAccount;
+import com.droppa.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +41,7 @@ public class UserController {
 	@PutMapping("/email/confirmation/{email}")
 	public ResponseEntity<UserResponseDTO> confirmEmail(@PathVariable("email") String email,
 			@RequestParam(required = true) int code) {
-		UserResponseDTO resp = userService.confirmEmail(email, code);
+		UserResponseDTO resp = userService.confirmEmailAccount(email, code);
 		return new ResponseEntity<UserResponseDTO>(resp, HttpStatus.OK);
 	}
 
@@ -65,10 +66,10 @@ public class UserController {
 	}
 
 	@PutMapping("/loadwallet/{username}")
-	public ResponseEntity<Double> loadWallet(@PathVariable("username") String username,
-			@RequestParam(required = true) double amount) {
-		Double userAccount = userService.loadWallet(username, amount);
-		return new ResponseEntity<Double>(userAccount,HttpStatus.OK);
+	public ResponseEntity<BigDecimal> loadWallet(@PathVariable("username") String username,
+			@RequestParam(required = true) BigDecimal amount) {
+		BigDecimal userAccount = userService.loadWallet(username, amount);
+		return new ResponseEntity<BigDecimal>(userAccount,HttpStatus.OK);
 	}
 
 }

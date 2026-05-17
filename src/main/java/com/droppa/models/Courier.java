@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.models;
+package com.droppa.models;
 
 import java.time.LocalDate;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.droppa.clone.droppa.enums;
+package com.droppa.enums;
 
 public enum TokenType {
   BEARER

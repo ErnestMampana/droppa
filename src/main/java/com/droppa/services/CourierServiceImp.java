@@ -1,18 +1,18 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.services;
+package com.droppa.services;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import com.droppa.clone.droppa.interfaces.CourierService;
-import com.droppa.clone.droppa.models.Courier;
-import com.droppa.clone.droppa.models.Parcel;
-import com.droppa.clone.droppa.models.Person;
-import com.droppa.clone.droppa.models.UserAccount;
-import com.droppa.clone.droppa.repositories.CourierRepository;
-import com.droppa.clone.droppa.repositories.ParcelRepository;
+import com.droppa.interfaces.CourierService;
+import com.droppa.models.Courier;
+import com.droppa.models.Parcel;
+import com.droppa.models.Person;
+import com.droppa.models.UserAccount;
+import com.droppa.repositories.CourierRepository;
+import com.droppa.repositories.ParcelRepository;
 
 import lombok.RequiredArgsConstructor;
 

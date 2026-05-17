@@ -1,20 +1,23 @@
-package com.droppa.clone.droppa.services;
+package com.droppa.services;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import com.droppa.clone.droppa.common.ClientException;
-import com.droppa.clone.droppa.dto.PersonDTO;
-import com.droppa.clone.droppa.dto.UserResponseDTO;
-import com.droppa.clone.droppa.enums.AccountStatus;
-import com.droppa.clone.droppa.enums.Role;
-import com.droppa.clone.droppa.enums.TokenType;
-import com.droppa.clone.droppa.models.Person;
-import com.droppa.clone.droppa.models.Token;
-import com.droppa.clone.droppa.models.UserAccount;
-import com.droppa.clone.droppa.repositories.PersonRepository;
-import com.droppa.clone.droppa.repositories.TokenRepository;
-import com.droppa.clone.droppa.repositories.UserAccountRepository;
+import com.droppa.common.ClientException;
+import com.droppa.dto.PersonDTO;
+import com.droppa.dto.UserResponseDTO;
+import com.droppa.enums.AccountStatus;
+import com.droppa.enums.Role;
+import com.droppa.enums.TokenType;
+import com.droppa.models.Booking;
+import com.droppa.models.Person;
+import com.droppa.models.Token;
+import com.droppa.models.UserAccount;
+import com.droppa.repositories.PersonRepository;
+import com.droppa.repositories.TokenRepository;
+import com.droppa.repositories.UserAccountRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.modelmapper.ModelMapper;
@@ -39,55 +42,34 @@ public class UserService {
 	}
 
 	@Transactional
-	public UserResponseDTO confirmEmail(String email, int code) {
+	public UserResponseDTO confirmEmailAccount(String email, String code) {
 
-		String message = "User " + "'" + email + "'" + " was not found";
-		UserAccount user = userAccountRepository.findByEmail(email)
-				.orElseThrow(() -> new ClientException("Account not found"));
+		UserAccount user = getUserByEmail(email);
 
-		if (user.getStatus().equals(AccountStatus.ACTIVE)) {
-			message = "Account already active";
-			throw new ClientException(message);
-		}
+		validateEmailConfirmation(user, code);
 
-		if (user.getOtp() == code) {
+		user.setOtp("0");
+		user.setConfirmed(true);
+		user.setStatus(AccountStatus.ACTIVE);
 
-			user.setOtp(0);
-			user.setConfirmed(true);
-			user.setStatus(AccountStatus.ACTIVE);
+		Token tokenData = tokenRepository.findByUserId(user.getId()).get();//.orElseThrow(() -> new TokenNotFoundException(user.getId()));
 
-			message = "Account Activated";
-
-			Token tokenData = tokenRepository.findByUserId(user.getId()).get();
-
-			return UserResponseDTO.builder().cellphone(user.getPerson().getCellphone())
-					.surname(user.getPerson().getSurname()).userName(user.getPerson().getUserName())
-					.token(tokenData.getToken()).myBookings(null).walletBalance(user.getPerson().getWalletBalance())
-					.email(user.getEmail()).build();
-
-		} else {
-			message = "invalid otp";
-			throw new ClientException(message);
-		}
+		return UserResponseDTO.builder().cellphone(user.getPerson().getCellphone())
+				.surname(user.getPerson().getSurname()).userName(user.getPerson().getUserName())
+				.token(tokenData.getToken()).myBookings(null).walletBalance(user.getPerson().getWalletBalance())
+				.email(user.getEmail()).build();
 
 	}
 
 	public UserAccount getUserByEmail(String email) {
 
-		Optional<UserAccount> userOptional = userAccountRepository.findByEmail(email);
-
-		if (userOptional.isPresent()) {
-			UserAccount user = userOptional.get();
-			return user;
-		} else {
-			throw new ClientException("User not fond");
-		}
+		return userAccountRepository.findByEmail(email).orElseThrow(() -> new ClientException("Account not found"));
 
 	}
 
 	@Transactional
-	public int requestPasswordReset(String email) {
-		int otp = 0;
+	public String requestPasswordReset(String email) {
+		String otp = "";
 
 		UserAccount userAccount = getUserByEmail(email);
 
@@ -103,11 +85,11 @@ public class UserService {
 	}
 
 	@Transactional
-	public UserAccount resetPassword(int otp, String username, String password) {
+	public UserAccount resetPassword(String otp, String username, String password) {
 		UserAccount userAcc = getUserByEmail(username);
 		if (userAcc.getStatus().equals(AccountStatus.AWAITING_PWD_RESET)) {
-			if (userAcc.getOtp() == otp) {
-				userAcc.setOtp(0);
+			if (userAcc.getOtp().equals(otp)) {
+				userAcc.setOtp(null);
 				userAcc.setPassword(passwordEncoder.encode(password));
 				userAcc.setStatus(AccountStatus.ACTIVE);
 			}
@@ -116,23 +98,54 @@ public class UserService {
 	}
 
 	@Transactional
-	public double loadWallet(String username, double amount) {
+	public BigDecimal loadWallet(String username, BigDecimal amount) {
 
 		UserAccount userAccount = getUserByEmail(username);
-		if (userAccount.getStatus().equals(AccountStatus.ACTIVE)) {
-			userAccount.getPerson().setWalletBalance(userAccount.getPerson().getWalletBalance() + amount);
-			return userAccount.getPerson().getWalletBalance();
-		} else {
-			if (userAccount.getStatus().equals(AccountStatus.AWAITING_CONFIRMATION)) {
-				throw new ClientException("Please confirm your account first.");
-			} else if (userAccount.getStatus().equals(AccountStatus.AWAITING_PWD_RESET)) {
-				throw new ClientException("You haven't set confirmed your new password");
-			} else {
-				throw new ClientException(
-						"Your account has been suspended please contact Droppa Clone for re-activation.");
-			}
-		}
+		validateAccountStatus(userAccount.getStatus());
 
+		userAccount.getPerson().setWalletBalance(userAccount.getPerson().getWalletBalance().add(amount));
+		return userAccount.getPerson().getWalletBalance();
+
+	}
+	
+	private void validateAccountStatus(AccountStatus accountStatus) {
+
+	    switch (accountStatus) {
+
+	        case AWAITING_CONFIRMATION:
+	            throw new ClientException(
+	                    "Please confirm your account first.");
+
+	        case AWAITING_PWD_RESET:
+	            throw new ClientException(
+	                    "You haven't yet confirmed your new password");
+
+	        case SUSPENDED:
+	            throw new ClientException(
+	                    "Your account has been suspended please contact Droppa Clone for re-activation.");
+
+	        default:
+	            break;
+	    }
+	}
+	
+	private void validateEmailConfirmation(UserAccount userAccount,String otpCode) {
+		
+		if (userAccount.getStatus() == AccountStatus.ACTIVE) {
+	        throw new ClientException("Account already active");
+	    }
+
+	    if (userAccount.getStatus() != AccountStatus.AWAITING_CONFIRMATION) {
+	        throw new ClientException("Invalid account state");
+	    }
+
+	    if (!userAccount.getOtp().equals(otpCode)) {
+	        throw new ClientException("Invalid OTP");
+	    }
+
+	    if (userAccount.getOtpExpiry().isBefore(LocalDateTime.now())) {
+	        throw new ClientException("OTP expired");
+	    }
 	}
 
 }

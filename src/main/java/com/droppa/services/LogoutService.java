@@ -1,6 +1,6 @@
-package com.droppa.clone.droppa.services;
+package com.droppa.services;
 
-import com.droppa.clone.droppa.repositories.TokenRepository;
+import com.droppa.repositories.TokenRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

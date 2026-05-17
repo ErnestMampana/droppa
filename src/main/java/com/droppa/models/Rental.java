@@ -1,15 +1,16 @@
 /**
  *
  */
-package com.droppa.clone.droppa.models;
+package com.droppa.models;
 
-import com.droppa.clone.droppa.enums.RentalStatus;
+import com.droppa.enums.RentalStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
@@ -37,7 +38,7 @@ public class Rental {
     private LocalDate startDate;
     private LocalDate endDate;
     private String truckType;
-    private double price;
+    private BigDecimal price;
     private String companyName;
     private String contactPerson;
     private String mobileNumber;

@@ -1,7 +1,7 @@
 /**
  *
  */
-package com.droppa.clone.droppa.config;
+package com.droppa.config;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;

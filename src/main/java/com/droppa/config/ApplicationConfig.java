@@ -1,6 +1,6 @@
-package com.droppa.clone.droppa.config;
+package com.droppa.config;
 
-import com.droppa.clone.droppa.repositories.UserAccountRepository;
+import com.droppa.repositories.UserAccountRepository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

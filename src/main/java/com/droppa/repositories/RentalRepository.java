@@ -1,13 +1,13 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.repositories;
+package com.droppa.repositories;
 
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.droppa.clone.droppa.models.Rental;
+import com.droppa.models.Rental;
 
 /**
  * @author Ernest Mampana

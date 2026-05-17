@@ -1,6 +1,6 @@
-package com.droppa.clone.droppa.models;
+package com.droppa.models;
 
-import com.droppa.clone.droppa.enums.TokenType;
+import com.droppa.enums.TokenType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

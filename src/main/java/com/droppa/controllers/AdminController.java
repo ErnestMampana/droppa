@@ -1,8 +1,8 @@
-package com.droppa.clone.droppa.controllers;
+package com.droppa.controllers;
 
-import com.droppa.clone.droppa.dto.CreatePromDTO;
-import com.droppa.clone.droppa.models.Booking;
-import com.droppa.clone.droppa.services.AdminService;
+import com.droppa.dto.CreatePromDTO;
+import com.droppa.models.Booking;
+import com.droppa.services.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,21 +24,18 @@ public class AdminController {
 
 	@PutMapping("/suspenddriver/{driverId}")
 	public ResponseEntity<String> suspendDriver(@PathVariable("driverId") String driverId) {
-		String entity = adminService.suspendDriver(driverId);
-		return new ResponseEntity<String>(entity,HttpStatus.OK);
+		return new ResponseEntity<String>(adminService.suspendDriver(driverId),HttpStatus.ACCEPTED);
 	}
 
 	@PutMapping("/activatedriver/{driverId}")
 	public ResponseEntity<String> activateDriver(@PathVariable("driverId") String driverId) {
-		String entity = adminService.confirmDriver(driverId);
-		return new ResponseEntity<String>(entity,HttpStatus.OK);
+		return new ResponseEntity<String>(adminService.confirmDriver(driverId),HttpStatus.ACCEPTED);
 	}
 
 	@PutMapping("/assigndriver/{bookingId}/{driverId}")
 	public ResponseEntity<Booking> asignBookingToDriver(@PathVariable("bookingId") String bookingId,
 														@PathVariable("driverId") String driverId) {
-		Booking booking = adminService.asignBookingToDriver(bookingId, driverId);
-		return new ResponseEntity<Booking>(booking,HttpStatus.OK);
+		return new ResponseEntity<Booking>(adminService.asignBookingToDriver(bookingId, driverId),HttpStatus.ACCEPTED);
 	}
 
 //	@DeleteMapping("/deletebooking/{bookingId}")
@@ -49,23 +46,21 @@ public class AdminController {
 
 	@PutMapping("/suspenduser/{useremail}")
 	public ResponseEntity<String> suspendUser(@PathVariable("useremail") String userId) {
-		String message = adminService.suspendUser(userId);
-		return new ResponseEntity<String>(message,HttpStatus.OK);
+		return new ResponseEntity<String>(adminService.suspendUser(userId),HttpStatus.ACCEPTED);
 	}
 	
 	@PutMapping("/activateuser/{useremail}")
 	public ResponseEntity<String> activateUser(@PathVariable("useremail") String userId) {
-		String message = adminService.activateUser(userId);
-		return new ResponseEntity<String>(message,HttpStatus.OK);
+		return new ResponseEntity<String>(adminService.activateUser(userId),HttpStatus.ACCEPTED);
 	}
 	
 	@PostMapping("/createpromocode")
 	public ResponseEntity<String> createPromoCode(@RequestBody CreatePromDTO promoDto){
-		return new ResponseEntity<String>(adminService.generatePromoCode(promoDto),HttpStatus.OK);
+		return new ResponseEntity<String>(adminService.generatePromoCode(promoDto),HttpStatus.ACCEPTED);
 	}
 	
 	@DeleteMapping("/deleteBooking/{bookingId}")
 	public ResponseEntity<String> deleteBooking(@PathVariable("bookingId") String bookingId){
-		return new ResponseEntity<String>(adminService.deleteBooking(bookingId),HttpStatus.OK);
+		return new ResponseEntity<String>(adminService.deleteBooking(bookingId),HttpStatus.ACCEPTED);
 	}
 }

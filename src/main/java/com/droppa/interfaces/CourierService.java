@@ -1,9 +1,9 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.interfaces;
+package com.droppa.interfaces;
 
-import com.droppa.clone.droppa.models.Courier;
+import com.droppa.models.Courier;
 
 /**
  * @author Ernest Mampana

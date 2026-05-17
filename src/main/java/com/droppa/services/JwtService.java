@@ -1,4 +1,4 @@
-package com.droppa.clone.droppa.services;
+package com.droppa.services;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

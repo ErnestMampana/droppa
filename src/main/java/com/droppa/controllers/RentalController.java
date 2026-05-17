@@ -1,10 +1,10 @@
-package com.droppa.clone.droppa.controllers;
+package com.droppa.controllers;
 
-import com.droppa.clone.droppa.dto.PaymentDAO;
-import com.droppa.clone.droppa.dto.RentalDTO;
-import com.droppa.clone.droppa.models.Booking;
-import com.droppa.clone.droppa.models.Rental;
-import com.droppa.clone.droppa.services.RentalService;
+import com.droppa.dto.PaymentDAO;
+import com.droppa.dto.RentalDTO;
+import com.droppa.models.Booking;
+import com.droppa.models.Rental;
+import com.droppa.services.RentalService;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;

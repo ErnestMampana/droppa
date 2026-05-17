@@ -1,25 +1,26 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.services;
+package com.droppa.services;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import com.droppa.clone.droppa.dto.PaymentDAO;
+import com.droppa.dto.PaymentDAO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import com.droppa.clone.droppa.common.ClientException;
-import com.droppa.clone.droppa.dto.RentalDTO;
-import com.droppa.clone.droppa.enums.AccountStatus;
-import com.droppa.clone.droppa.enums.BookingStatus;
-import com.droppa.clone.droppa.enums.RentalStatus;
-import com.droppa.clone.droppa.models.Booking;
-import com.droppa.clone.droppa.models.Rental;
-import com.droppa.clone.droppa.models.UserAccount;
-import com.droppa.clone.droppa.repositories.RentalRepository;
-import com.droppa.clone.droppa.repositories.UserAccountRepository;
+import com.droppa.common.ClientException;
+import com.droppa.dto.RentalDTO;
+import com.droppa.enums.AccountStatus;
+import com.droppa.enums.BookingStatus;
+import com.droppa.enums.RentalStatus;
+import com.droppa.models.Booking;
+import com.droppa.models.Rental;
+import com.droppa.models.UserAccount;
+import com.droppa.repositories.RentalRepository;
+import com.droppa.repositories.UserAccountRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -94,9 +95,12 @@ public class RentalService {
 		Rental rentalBooking = getBookingById(payment.getBookingId());
 		if (rentalBooking.getUserId().equals(payment.getUserId())) {
 			if (payment.getPaymentType().equals("Wallet")) {
-				if(user.getPerson().getWalletBalance() < payment.getBookingPrice())
+				if(user.getPerson().getWalletBalance().compareTo(payment.getBookingPrice()) < 0)
 					throw new ClientException("Insufficient funds");
-				user.getPerson().setWalletBalance(user.getPerson().getWalletBalance() - payment.getBookingPrice());
+	
+
+				user.getPerson().setWalletBalance(user.getPerson().getWalletBalance()
+		                .subtract(payment.getBookingPrice()));
 			}
 			rentalBooking.setPaymentType(payment.getPaymentType());
 			rentalBooking.setPromoCodeUsed(payment.getUsedPromo());

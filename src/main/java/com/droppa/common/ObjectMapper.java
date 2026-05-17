@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.common;
+package com.droppa.common;
 
 /**
  * @author Ernest Mampana

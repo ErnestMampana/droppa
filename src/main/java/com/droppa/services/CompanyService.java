@@ -1,18 +1,18 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.services;
+package com.droppa.services;
 
 import java.util.List;
 import java.util.Optional;
 
-import com.droppa.clone.droppa.common.ClientException;
-import com.droppa.clone.droppa.dto.CompanyDTO;
-import com.droppa.clone.droppa.enums.AccountStatus;
-import com.droppa.clone.droppa.models.Company;
-import com.droppa.clone.droppa.models.Person;
-import com.droppa.clone.droppa.models.UserAccount;
-import com.droppa.clone.droppa.repositories.CompanyRepository;
+import com.droppa.common.ClientException;
+import com.droppa.dto.CompanyDTO;
+import com.droppa.enums.AccountStatus;
+import com.droppa.models.Company;
+import com.droppa.models.Person;
+import com.droppa.models.UserAccount;
+import com.droppa.repositories.CompanyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

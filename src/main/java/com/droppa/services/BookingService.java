@@ -1,22 +1,23 @@
 /**
  *
  */
-package com.droppa.clone.droppa.services;
+package com.droppa.services;
 
-import com.droppa.clone.droppa.common.ClientException;
-import com.droppa.clone.droppa.dto.BookingDTO;
-import com.droppa.clone.droppa.dto.CoordinatesDTO;
-import com.droppa.clone.droppa.dto.PaymentDAO;
-import com.droppa.clone.droppa.enums.AccountStatus;
-import com.droppa.clone.droppa.enums.BookingStatus;
-import com.droppa.clone.droppa.models.Adress;
-import com.droppa.clone.droppa.models.Booking;
-import com.droppa.clone.droppa.models.DropDetails;
-import com.droppa.clone.droppa.models.UserAccount;
-import com.droppa.clone.droppa.repositories.AddressRespository;
-import com.droppa.clone.droppa.repositories.BookingRepository;
-import com.droppa.clone.droppa.repositories.DropDetailsrepository;
-import com.droppa.clone.droppa.repositories.UserAccountRepository;
+import com.droppa.common.ClientException;
+import com.droppa.dto.BookingDTO;
+import com.droppa.dto.CoordinatesDTO;
+import com.droppa.dto.PaymentDAO;
+import com.droppa.enums.AccountStatus;
+import com.droppa.enums.BookingStatus;
+import com.droppa.enums.PaymentMethod;
+import com.droppa.models.Adress;
+import com.droppa.models.Booking;
+import com.droppa.models.DropDetails;
+import com.droppa.models.UserAccount;
+import com.droppa.repositories.AddressRespository;
+import com.droppa.repositories.BookingRepository;
+import com.droppa.repositories.DropDetailsrepository;
+import com.droppa.repositories.UserAccountRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -26,9 +27,11 @@ import org.apache.catalina.mapper.Mapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * @author Ernest Mampana
@@ -50,70 +53,22 @@ public class BookingService {
 	private final UserService userService;
 
 	private final UserAccountRepository userAccountRepository;
+	
+	
 
+
+	@Transactional
 	public Booking createBooking(BookingDTO bookingDto) {
 
-		log.info("======================================== Requesting to create a booking");
-		String bookingId;
+		validateActiveUser(bookingDto.getUserId());
 
-		Optional<UserAccount> user = userAccountRepository.findByEmail(bookingDto.getUserId());
+		DropDetails dropDetails = buildDropDetails(bookingDto);
 
-		if (user.isPresent()) {
+		Booking booking = buildBooking(bookingDto, dropDetails);
 
-			var dropDetails = DropDetails.builder().dropOffNames(bookingDto.getDropOffName())
-					.dropOffContact(bookingDto.getDropOffPhone()).pickUpNames(bookingDto.getPickUpName())
-					.pickUpContact(bookingDto.getPickUpCellphone()).build();
+		saveBooking(booking, dropDetails);
 
-			bookingId = partyService.randomChars(15);
-
-			boolean found = true;
-			while (found) {
-				Optional<Booking> bookingOptional = bookingRepository.findByBookingId(bookingId);
-				if (bookingOptional.isPresent()) {
-					bookingId = partyService.randomChars(15);
-				} else {
-					found = false;
-				}
-			}
-
-			BookingStatus status;
-
-			if (bookingDto.isPaid()) {
-				status = BookingStatus.AWAITING_DRIVER;
-			} else {
-				status = BookingStatus.AWAITING_PAYMENT;
-			}
-
-			var booking = Booking.builder().bookingId(bookingId).pickUpAddess(bookingDto.getPickupadress())
-					.userId(bookingDto.getUserId()).dropOffAdress(bookingDto.getDropoffadress())
-					.bookingDate(bookingDto.getDate()).time(bookingDto.getTime()).price(bookingDto.getBookingPrice())
-					.itemsToBeDelivered(bookingDto.getItemsToBeDelivered()).labours(bookingDto.getLabours())
-					.paymentType(bookingDto.getPaymentType()).dropDetails(dropDetails).loads(bookingDto.getLoads())
-					.assinedDriver(null).vehicleType(bookingDto.getVehicle()).status(status)
-					.trackNumber(partyService.generateTracknumber()).build();
-
-			UserAccount userAccount = userService.getUserByEmail(bookingDto.getUserId());
-
-			if (userAccount.getStatus().equals(AccountStatus.ACTIVE)) {
-				log.info("========================= Booking " + bookingId + " has been created.");
-				dropRepo.save(dropDetails);
-				bookingRepository.save(booking);
-
-				return booking;
-
-			} else {
-				if (userAccount.getStatus().equals(AccountStatus.AWAITING_CONFIRMATION)) {
-					throw new ClientException("Please confirm your account first.");
-				} else if (userAccount.getStatus().equals(AccountStatus.AWAITING_PWD_RESET)) {
-					throw new ClientException("You haven't set confirmed your new password");
-				} else {
-					throw new ClientException(
-							"Your account has been suspended please contact Droppa Clone for re-activation.");
-				}
-			}
-		} else {
-			throw new ClientException("User account not found");
-		}
+		return booking;
 
 	}
 
@@ -130,104 +85,214 @@ public class BookingService {
 	}
 
 	public Booking getBookingById(String bookingId) {
-		Optional<Booking> bookingOptional = bookingRepository.findByBookingId(bookingId);
+		
+		return bookingRepository.findByBookingId(bookingId).
+				orElseThrow(()-> new ClientException("booking not found"));
 
-		if (bookingOptional.isPresent()) {
-			return bookingOptional.get();
-		} else {
-			throw new ClientException("booking not found");
-		}
 	}
 
 	public List<Booking> getBookingsByStatus(BookingStatus status) {
 
-		Optional<List<Booking>> bookingOptional = bookingRepository.findAllByStatus(status);
-
-		if (bookingOptional.isPresent()) {
-			List<Booking> bookings = bookingOptional.get();
-			return bookings;
-		} else {
-			throw new ClientException("No bookings matching '" + status + "' status");
-		}
+		return bookingRepository.findAllByStatus(status).
+				orElseThrow(() -> new ClientException("No booking matching"+ status+"status"));
 
 	}
 
 	public List<Booking> getBookingsByStatusForUser(BookingStatus status, String userId) {
 
-		Optional<List<Booking>> bookingOptional = bookingRepository.findAllByStatusAndUserId(status, userId);
-
-		if (bookingOptional.isPresent()) {
-			List<Booking> bookings = bookingOptional.get();
-			return bookings;
-		} else {
-			throw new ClientException(
-					"No bookings matching '" + status + "' status for provided user '" + userId + "'.");
-		}
+		return bookingRepository.findAllByStatusAndUserId(status, userId).
+				orElseThrow(() -> new ClientException("No bookings matching '" + status + "' status for provided user '" + userId + "'."));
 
 	}
 
 	public List<Booking> getBookingsByDriverId(String driverId) {
-		Optional<List<Booking>> bookingOptional = bookingRepository.findAllByAssinedDriver(driverId);
-
-		if (bookingOptional.isPresent()) {
-			List<Booking> bookings = bookingOptional.get();
-			return bookings;
-		} else {
-			throw new ClientException("No bookings matching assigned driver '" + driverId + "'.");
-		}
+		return bookingRepository.findAllByAssinedDriver(driverId).
+				orElseThrow(() -> new ClientException("No bookings matching assigned driver '" + driverId + "'."));
 	}
 
 	public List<Booking> getBookingByUserId(String userId) {
-		Optional<List<Booking>> bookingOptional = bookingRepository.findAllByUserId(userId);
-
-		if (bookingOptional.isPresent()) {
-
-			List<Booking> bookings = bookingOptional.get();
-
-			log.info("========================== Fetching bookings by email " + userId);
-
-			return bookings;
-		} else {
-			throw new ClientException("No bookings matching assigned driver '" + userId + "'.");
-		}
+		return bookingRepository.findAllByUserId(userId).
+				orElseThrow(() -> new ClientException("No bookings matching assigned driver '" + userId + "'."));
 	}
 
+	
 	@Transactional
 	public Booking cancelBooking(String bookingId, String userId) {
-		Booking booking = getBookingById(bookingId);
-		if (booking.getBookingId() != null && booking.getStatus() != BookingStatus.CANCELLED
-				&& booking.getUserId().equals(userId) && booking.getStatus() != BookingStatus.COMPLETE
-				&& booking.getStatus() != BookingStatus.IN_TRANSACT) {
 
-			booking.setStatus(BookingStatus.CANCELLED);
-			return booking;
-		} else {
-			if (booking.getStatus().equals(BookingStatus.COMPLETE)) {
-				throw new ClientException("This is booking is completed and cant be edited.");
-			} else {
-				throw new ClientException("Something went wrong, please try again");
-			}
-		}
+	    Booking booking = getBookingById(bookingId);
+
+	    validateBookingOwnership(booking, userId);
+
+	    validateBookingCanBeCancelled(booking);
+
+	    booking.setStatus(BookingStatus.CANCELLED);
+
+	    return booking;
 	}
 
+//	@Transactional
+//	public Booking makePayments(PaymentDAO payment) {
+//		UserAccount user = userService.getUserByEmail(payment.getUserId());
+//		Booking booking = getBookingById(payment.getBookingId());
+//		if (booking.getUserId().equals(payment.getUserId())) {
+//			if (payment.getPaymentType().equals("Wallet")) {
+//				if(user.getPerson().getWalletBalance() < payment.getBookingPrice())
+//					throw new ClientException("Insufficient funds");
+//				user.getPerson().setWalletBalance(user.getPerson().getWalletBalance() - payment.getBookingPrice());
+//			}				
+//			booking.setPaymentType(payment.getPaymentType());
+//			booking.setPromoCodeUsed(payment.getUsedPromo());
+//			booking.setStatus(BookingStatus.AWAITING_DRIVER);
+//			booking.setPrice(payment.getBookingPrice());
+//			return booking;
+//		} else {
+//			throw new ClientException("Something went wrong, please try again");
+//		}
+//	}
+	
+	
 	@Transactional
-	public Booking makePayments(PaymentDAO payment) {
-		UserAccount user = userService.getUserByEmail(payment.getUserId());
-		Booking booking = getBookingById(payment.getBookingId());
-		if (booking.getUserId().equals(payment.getUserId())) {
-			if (payment.getPaymentType().equals("Wallet")) {
-				if(user.getPerson().getWalletBalance() < payment.getBookingPrice())
-					throw new ClientException("Insufficient funds");
-				user.getPerson().setWalletBalance(user.getPerson().getWalletBalance() - payment.getBookingPrice());
-			}				
-			booking.setPaymentType(payment.getPaymentType());
-			booking.setPromoCodeUsed(payment.getUsedPromo());
-			booking.setStatus(BookingStatus.AWAITING_DRIVER);
-			booking.setPrice(payment.getBookingPrice());
-			return booking;
-		} else {
-			throw new ClientException("Something went wrong, please try again");
-		}
+	public Booking makePayment(PaymentDAO payment) {
+
+	    UserAccount user =
+	            userService.getUserByEmail(payment.getUserId());
+
+	    Booking booking =
+	            getBookingById(payment.getBookingId());
+
+	    validateBookingOwnership(booking, user);
+
+	    validateBookingPaymentAllowed(booking);
+
+	    processPayment(user, booking, payment);
+
+	    booking.setPromoCodeUsed(payment.getUsedPromo());
+
+	    booking.setStatus(BookingStatus.AWAITING_DRIVER);
+
+	    return booking;
+	}
+	
+	
+	private DropDetails buildDropDetails(BookingDTO bookingDto) {
+		return DropDetails.builder().dropOffNames(bookingDto.getDropOffName())
+				.dropOffContact(bookingDto.getDropOffPhone()).pickUpNames(bookingDto.getPickUpName())
+				.pickUpContact(bookingDto.getPickUpCellphone()).build();
+	}
+	
+	private Booking buildBooking(BookingDTO bookingDto,DropDetails dropDetails) {
+		return Booking.builder().bookingId(UUID.randomUUID().toString()).pickUpAddess(bookingDto.getPickupadress())
+				.userId(bookingDto.getUserId()).dropOffAdress(bookingDto.getDropoffadress())
+				.bookingDate(bookingDto.getDate()).time(bookingDto.getTime()).price(bookingDto.getBookingPrice())
+				.itemsToBeDelivered(bookingDto.getItemsToBeDelivered()).labours(bookingDto.getLabours())
+				.paymentType(bookingDto.getPaymentType()).dropDetails(dropDetails).loads(bookingDto.getLoads())
+				.assinedDriver(null).vehicleType(bookingDto.getVehicle()).status(bookingDto.isPaid() ? 
+						BookingStatus.AWAITING_DRIVER : BookingStatus.AWAITING_PAYMENT)
+				.trackNumber(partyService.generateTracknumber()).build();
+	}
+	
+	private void saveBooking(Booking booking,DropDetails dropDetails) {
+		log.info("Booking {} has been created", booking.getBookingId());
+		dropRepo.save(dropDetails);
+		bookingRepository.save(booking);
+	}
+	
+	
+	private void validateActiveUser(String email) {
+
+	    UserAccount user = userAccountRepository.findByEmail(email)
+	            .orElseThrow(() ->
+	                    new ClientException("User account not found"));
+
+	    if (!AccountStatus.ACTIVE.equals(user.getStatus())) {
+	        throw new ClientException("User account is not active");
+	    }
+	}
+	
+	private void validateBookingOwnership(
+	        Booking booking,
+	        String userId) {
+
+	    if (!booking.getUserId().equals(userId)) {
+	        throw new ClientException(
+	                "You are not allowed to cancel this booking");
+	    }
+	}
+	
+	private void validateBookingCanBeCancelled(Booking booking) {
+
+	    switch (booking.getStatus()) {
+
+	        case CANCELLED:
+	            throw new ClientException(
+	                    "Booking is already cancelled");
+
+	        case COMPLETE:
+	            throw new ClientException(
+	                    "Completed bookings cannot be cancelled");
+
+	        case IN_TRANSACT:
+	            throw new ClientException(
+	                    "Booking already in transit cannot be cancelled");
+
+	        default:
+	            break;
+	    }
+	}
+	
+	private void processPayment(
+	        UserAccount user,
+	        Booking booking,
+	        PaymentDAO payment) {
+
+	    if (PaymentMethod.WALLET.equals(payment.getPaymentType())) {
+
+	        BigDecimal balance =
+	                user.getPerson().getWalletBalance();
+
+	        BigDecimal bookingPrice =
+	                booking.getPrice();
+
+	        if (balance.compareTo(bookingPrice) < 0) {
+	            throw new ClientException("Insufficient funds");
+	        }
+
+	        user.getPerson().setWalletBalance(
+	                balance.subtract(bookingPrice)
+	        );
+	    }
+	}
+	
+	private void validateBookingOwnership(
+	        Booking booking,
+	        UserAccount user) {
+
+	    if (!booking.getUserId().equals(user.getEmail())) {
+	        throw new ClientException(
+	                "You are not allowed to pay for this booking");
+	    }
+	}
+	
+	
+	private void validateBookingPaymentAllowed(Booking booking) {
+
+	    switch (booking.getStatus()) {
+
+	        case CANCELLED:
+	            throw new ClientException(
+	                    "Cancelled booking cannot be paid");
+
+	        case COMPLETE:
+	            throw new ClientException(
+	                    "Completed booking cannot be paid");
+
+	        case AWAITING_DRIVER:
+	            throw new ClientException(
+	                    "Booking already paid");
+
+	        default:
+	            break;
+	    }
 	}
 
 }

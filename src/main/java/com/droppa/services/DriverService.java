@@ -1,16 +1,16 @@
-package com.droppa.clone.droppa.services;
+package com.droppa.services;
 
 import java.util.List;
 import java.util.Optional;
 
-import com.droppa.clone.droppa.common.ClientException;
-import com.droppa.clone.droppa.dto.DriverDTO;
-import com.droppa.clone.droppa.enums.AccountStatus;
-import com.droppa.clone.droppa.models.DriverAccount;
-import com.droppa.clone.droppa.models.Vehicle;
-import com.droppa.clone.droppa.models.VehicleDriver;
-import com.droppa.clone.droppa.repositories.DriverAccountRepository;
-import com.droppa.clone.droppa.repositories.VehicleDriverRepository;
+import com.droppa.common.ClientException;
+import com.droppa.dto.DriverDTO;
+import com.droppa.enums.AccountStatus;
+import com.droppa.models.DriverAccount;
+import com.droppa.models.Vehicle;
+import com.droppa.models.VehicleDriver;
+import com.droppa.repositories.DriverAccountRepository;
+import com.droppa.repositories.VehicleDriverRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

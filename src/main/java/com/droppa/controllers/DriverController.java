@@ -1,10 +1,10 @@
-package com.droppa.clone.droppa.controllers;
+package com.droppa.controllers;
 
 import java.util.List;
 
-import com.droppa.clone.droppa.dto.DriverDTO;
-import com.droppa.clone.droppa.models.DriverAccount;
-import com.droppa.clone.droppa.services.DriverService;
+import com.droppa.dto.DriverDTO;
+import com.droppa.models.DriverAccount;
+import com.droppa.services.DriverService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

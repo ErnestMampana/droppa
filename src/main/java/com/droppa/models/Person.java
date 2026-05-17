@@ -1,4 +1,6 @@
-package com.droppa.clone.droppa.models;
+package com.droppa.models;
+
+import java.math.BigDecimal;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -21,7 +23,7 @@ public class Person {
 	private String userName;
 	private String surname;
 	private String cellphone;
-	private double walletBalance;
+	private BigDecimal walletBalance;
 	private String email;
 
 

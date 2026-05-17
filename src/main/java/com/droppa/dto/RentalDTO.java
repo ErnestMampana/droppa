@@ -1,10 +1,10 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.dto;
+package com.droppa.dto;
 
 import java.time.LocalDate;
-import com.droppa.clone.droppa.models.Person;
+import com.droppa.models.Person;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

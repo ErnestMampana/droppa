@@ -1,9 +1,9 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.interfaces;
+package com.droppa.interfaces;
 
-import com.droppa.clone.droppa.dto.EmailDetails;
+import com.droppa.dto.EmailDetails;
 
 /**
  * @author Ernest Mampana

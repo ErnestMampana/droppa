@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.droppa.clone.droppa.enums;
+package com.droppa.enums;
 
 /**
  * @author Ernest Mampana
