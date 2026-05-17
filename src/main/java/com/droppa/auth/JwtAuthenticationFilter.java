@@ -1,7 +1,8 @@
 package com.droppa.auth;
 
-import com.droppa.repositories.TokenRepository;
-import com.droppa.services.JwtService;
+import com.droppa.DroppaUserService.repository.TokenRepository;
+import com.droppa.DroppaUserService.service.JwtService;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

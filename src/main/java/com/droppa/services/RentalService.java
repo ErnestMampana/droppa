@@ -11,16 +11,17 @@ import com.droppa.dto.PaymentDAO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import com.droppa.DroppaUserService.entity.UserAccount;
+import com.droppa.DroppaUserService.enums.AccountStatus;
+import com.droppa.DroppaUserService.repository.UserAccountRepository;
+import com.droppa.DroppaUserService.service.UserService;
 import com.droppa.common.ClientException;
 import com.droppa.dto.RentalDTO;
-import com.droppa.enums.AccountStatus;
 import com.droppa.enums.BookingStatus;
 import com.droppa.enums.RentalStatus;
 import com.droppa.models.Booking;
 import com.droppa.models.Rental;
-import com.droppa.models.UserAccount;
 import com.droppa.repositories.RentalRepository;
-import com.droppa.repositories.UserAccountRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

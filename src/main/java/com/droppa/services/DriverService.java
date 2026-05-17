@@ -3,9 +3,9 @@ package com.droppa.services;
 import java.util.List;
 import java.util.Optional;
 
+import com.droppa.DroppaUserService.enums.AccountStatus;
 import com.droppa.common.ClientException;
 import com.droppa.dto.DriverDTO;
-import com.droppa.enums.AccountStatus;
 import com.droppa.models.DriverAccount;
 import com.droppa.models.Vehicle;
 import com.droppa.models.VehicleDriver;

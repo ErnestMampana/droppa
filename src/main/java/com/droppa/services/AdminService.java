@@ -3,14 +3,15 @@ package com.droppa.services;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.droppa.DroppaUserService.entity.UserAccount;
+import com.droppa.DroppaUserService.enums.AccountStatus;
+import com.droppa.DroppaUserService.service.UserService;
 import com.droppa.common.ClientException;
 import com.droppa.dto.CreatePromDTO;
-import com.droppa.enums.AccountStatus;
 import com.droppa.enums.BookingStatus;
 import com.droppa.models.Booking;
 import com.droppa.models.DriverAccount;
 import com.droppa.models.PromoCode;
-import com.droppa.models.UserAccount;
 import com.droppa.repositories.AddressRespository;
 import com.droppa.repositories.BookingRepository;
 import com.droppa.repositories.DropDetailsrepository;

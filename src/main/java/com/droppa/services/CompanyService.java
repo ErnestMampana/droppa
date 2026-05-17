@@ -6,12 +6,13 @@ package com.droppa.services;
 import java.util.List;
 import java.util.Optional;
 
+import com.droppa.DroppaUserService.entity.Person;
+import com.droppa.DroppaUserService.entity.UserAccount;
+import com.droppa.DroppaUserService.enums.AccountStatus;
+import com.droppa.DroppaUserService.service.UserService;
 import com.droppa.common.ClientException;
 import com.droppa.dto.CompanyDTO;
-import com.droppa.enums.AccountStatus;
 import com.droppa.models.Company;
-import com.droppa.models.Person;
-import com.droppa.models.UserAccount;
 import com.droppa.repositories.CompanyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

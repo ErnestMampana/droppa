@@ -3,21 +3,22 @@
  */
 package com.droppa.services;
 
+import com.droppa.DroppaUserService.entity.UserAccount;
+import com.droppa.DroppaUserService.enums.AccountStatus;
+import com.droppa.DroppaUserService.repository.UserAccountRepository;
+import com.droppa.DroppaUserService.service.UserService;
 import com.droppa.common.ClientException;
 import com.droppa.dto.BookingDTO;
 import com.droppa.dto.CoordinatesDTO;
 import com.droppa.dto.PaymentDAO;
-import com.droppa.enums.AccountStatus;
 import com.droppa.enums.BookingStatus;
 import com.droppa.enums.PaymentMethod;
 import com.droppa.models.Adress;
 import com.droppa.models.Booking;
 import com.droppa.models.DropDetails;
-import com.droppa.models.UserAccount;
 import com.droppa.repositories.AddressRespository;
 import com.droppa.repositories.BookingRepository;
 import com.droppa.repositories.DropDetailsrepository;
-import com.droppa.repositories.UserAccountRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;

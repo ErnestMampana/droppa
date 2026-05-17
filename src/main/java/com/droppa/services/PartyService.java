@@ -11,8 +11,8 @@ import org.joda.time.Days;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.droppa.DroppaUserService.dto.EmailDetails;
 import com.droppa.common.ClientException;
-import com.droppa.dto.EmailDetails;
 import com.droppa.dto.PromoCodeDTO;
 import com.droppa.models.PromoCode;
 import com.droppa.repositories.PromoCodeRepository;

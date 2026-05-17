@@ -1,6 +1,7 @@
 package com.droppa.models;
 
-import com.droppa.enums.AccountStatus;
+import com.droppa.DroppaUserService.enums.AccountStatus;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+import com.droppa.DroppaUserService.entity.Person;
+
 /**
  * @author Ernest Mampana
  *

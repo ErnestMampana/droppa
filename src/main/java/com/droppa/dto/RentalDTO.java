@@ -4,7 +4,9 @@
 package com.droppa.dto;
 
 import java.time.LocalDate;
-import com.droppa.models.Person;
+
+import com.droppa.DroppaUserService.entity.Person;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

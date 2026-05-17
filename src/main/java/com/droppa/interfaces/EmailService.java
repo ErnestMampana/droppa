@@ -3,7 +3,7 @@
  */
 package com.droppa.interfaces;
 
-import com.droppa.dto.EmailDetails;
+import com.droppa.DroppaUserService.dto.EmailDetails;
 
 /**
  * @author Ernest Mampana

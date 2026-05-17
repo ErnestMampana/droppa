@@ -6,6 +6,8 @@ package com.droppa.models;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.droppa.DroppaUserService.entity.UserAccount;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;

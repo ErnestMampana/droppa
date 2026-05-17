@@ -6,11 +6,12 @@ package com.droppa.services;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import com.droppa.DroppaUserService.entity.Person;
+import com.droppa.DroppaUserService.entity.UserAccount;
+import com.droppa.DroppaUserService.service.UserService;
 import com.droppa.interfaces.CourierService;
 import com.droppa.models.Courier;
 import com.droppa.models.Parcel;
-import com.droppa.models.Person;
-import com.droppa.models.UserAccount;
 import com.droppa.repositories.CourierRepository;
 import com.droppa.repositories.ParcelRepository;
 
