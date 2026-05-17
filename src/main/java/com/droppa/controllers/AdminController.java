@@ -1,7 +1,7 @@
 package com.droppa.controllers;
 
+import com.droppa.DroppaBookingService.entity.Booking;
 import com.droppa.dto.CreatePromDTO;
-import com.droppa.models.Booking;
 import com.droppa.services.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

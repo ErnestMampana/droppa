@@ -1,8 +1,8 @@
 package com.droppa.controllers;
 
-import com.droppa.dto.PaymentDAO;
+import com.droppa.DroppaBookingService.dto.PaymentDAO;
+import com.droppa.DroppaBookingService.entity.Booking;
 import com.droppa.dto.RentalDTO;
-import com.droppa.models.Booking;
 import com.droppa.models.Rental;
 import com.droppa.services.RentalService;
 import lombok.RequiredArgsConstructor;

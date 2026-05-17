@@ -3,19 +3,20 @@ package com.droppa.services;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.droppa.DroppaBookingService.entity.Booking;
+import com.droppa.DroppaBookingService.entity.PromoCode;
+import com.droppa.DroppaBookingService.enums.BookingStatus;
+import com.droppa.DroppaBookingService.repository.AddressRespository;
+import com.droppa.DroppaBookingService.repository.BookingRepository;
+import com.droppa.DroppaBookingService.repository.DropDetailsrepository;
+import com.droppa.DroppaBookingService.repository.PromoCodeRepository;
+import com.droppa.DroppaBookingService.service.BookingService;
 import com.droppa.DroppaUserService.entity.UserAccount;
 import com.droppa.DroppaUserService.enums.AccountStatus;
 import com.droppa.DroppaUserService.service.UserService;
 import com.droppa.common.ClientException;
 import com.droppa.dto.CreatePromDTO;
-import com.droppa.enums.BookingStatus;
-import com.droppa.models.Booking;
 import com.droppa.models.DriverAccount;
-import com.droppa.models.PromoCode;
-import com.droppa.repositories.AddressRespository;
-import com.droppa.repositories.BookingRepository;
-import com.droppa.repositories.DropDetailsrepository;
-import com.droppa.repositories.PromoCodeRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

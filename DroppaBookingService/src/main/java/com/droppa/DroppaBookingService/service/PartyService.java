@@ -1,4 +1,4 @@
-package com.droppa.services;
+package com.droppa.DroppaBookingService.service;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
@@ -7,15 +7,15 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.logging.Logger;
 
-import org.joda.time.Days;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.droppa.DroppaBookingService.dto.EmailDetails;
+import com.droppa.DroppaBookingService.exceptions.ClientException;
 import com.droppa.DroppaBookingService.dto.PromoCodeDTO;
 import com.droppa.DroppaBookingService.entity.PromoCode;
 import com.droppa.DroppaBookingService.repository.PromoCodeRepository;
-import com.droppa.DroppaUserService.dto.EmailDetails;
-import com.droppa.common.ClientException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

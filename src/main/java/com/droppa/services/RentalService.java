@@ -7,19 +7,19 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import com.droppa.dto.PaymentDAO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import com.droppa.DroppaBookingService.dto.PaymentDAO;
+import com.droppa.DroppaBookingService.entity.Booking;
+import com.droppa.DroppaBookingService.enums.BookingStatus;
 import com.droppa.DroppaUserService.entity.UserAccount;
 import com.droppa.DroppaUserService.enums.AccountStatus;
 import com.droppa.DroppaUserService.repository.UserAccountRepository;
 import com.droppa.DroppaUserService.service.UserService;
 import com.droppa.common.ClientException;
 import com.droppa.dto.RentalDTO;
-import com.droppa.enums.BookingStatus;
 import com.droppa.enums.RentalStatus;
-import com.droppa.models.Booking;
 import com.droppa.models.Rental;
 import com.droppa.repositories.RentalRepository;
 
