@@ -1,9 +1,9 @@
 /**
  * 
  */
-package com.droppa.interfaces;
+package com.droppa.DroppaDriverService.interfaces;
 
-import com.droppa.DroppaUserService.dto.EmailDetails;
+import com.droppa.DroppaDriverService.dto.EmailDetails;
 
 /**
  * @author Ernest Mampana

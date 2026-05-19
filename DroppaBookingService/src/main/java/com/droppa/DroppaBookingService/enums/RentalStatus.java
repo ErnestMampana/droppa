@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.droppa.DroppaDriverService.enums;
+package com.droppa.DroppaBookingService.enums;
 
 /**
  * @author Ernest Mampana

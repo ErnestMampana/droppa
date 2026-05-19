@@ -1,4 +1,4 @@
-package com.droppa.services;
+package com.droppa.DroppaDriverService.services;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
@@ -7,15 +7,14 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.logging.Logger;
 
-import org.joda.time.Days;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.droppa.DroppaBookingService.dto.PromoCodeDTO;
-import com.droppa.DroppaBookingService.entity.PromoCode;
-import com.droppa.DroppaBookingService.repository.PromoCodeRepository;
-import com.droppa.DroppaUserService.dto.EmailDetails;
-import com.droppa.common.ClientException;
+//import com.droppa.DroppaBookingService.dto.PromoCodeDTO;
+//import com.droppa.DroppaBookingService.entity.PromoCode;
+//import com.droppa.DroppaBookingService.repository.PromoCodeRepository;
+import com.droppa.DroppaDriverService.dto.EmailDetails;
+import com.droppa.DroppaDriverService.exception.ClientException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PartyService {
 
-	private final PromoCodeRepository promoCodeRepository;
+	//private final PromoCodeRepository promoCodeRepository;
 	private static final SecureRandom secureRandom = new SecureRandom();
 	private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 	private final EmailServiceImp emailServiceImp;
@@ -109,23 +108,23 @@ public class PartyService {
 		return "PR" + ran + "CD";
 	}
 
-	@Transactional
-	public double applyPromocode(PromoCodeDTO promoData) {
-		double discountedPrice = 0.0;
-		Optional<PromoCode> promoOptional = promoCodeRepository.findByPromoCode(promoData.promoCode);
-		if (promoOptional.isPresent()) {
-			// Days.daysBetween(start, end).getDays();
-			if (LocalDate.now().isAfter(promoOptional.get().getExpiration()))
-				throw new ClientException("This promo code has EXPIRED");
-			if (promoOptional.get().getNumberOfTimesUsed() < promoOptional.get().getPromoCount()) {
-				discountedPrice = promoData.bookingPrice - promoOptional.get().getDiscountPrice();
-				promoOptional.get().setNumberOfTimesUsed(promoOptional.get().getNumberOfTimesUsed() + 1);
-				return discountedPrice;
-			} else {
-				throw new ClientException("This Promo Code has reached maximum use");
-			}
-		} else {
-			throw new ClientException("Invalid promo code");
-		}
-	}
+//	@Transactional
+//	public double applyPromocode(PromoCodeDTO promoData) {
+//		double discountedPrice = 0.0;
+//		Optional<PromoCode> promoOptional = promoCodeRepository.findByPromoCode(promoData.promoCode);
+//		if (promoOptional.isPresent()) {
+//			// Days.daysBetween(start, end).getDays();
+//			if (LocalDate.now().isAfter(promoOptional.get().getExpiration()))
+//				throw new ClientException("This promo code has EXPIRED");
+//			if (promoOptional.get().getNumberOfTimesUsed() < promoOptional.get().getPromoCount()) {
+//				discountedPrice = promoData.bookingPrice - promoOptional.get().getDiscountPrice();
+//				promoOptional.get().setNumberOfTimesUsed(promoOptional.get().getNumberOfTimesUsed() + 1);
+//				return discountedPrice;
+//			} else {
+//				throw new ClientException("This Promo Code has reached maximum use");
+//			}
+//		} else {
+//			throw new ClientException("Invalid promo code");
+//		}
+//	}
 }

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.droppa.services;
+package com.droppa.DroppaDriverService.services;
 
 import java.io.File;
 
@@ -12,8 +12,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import com.droppa.DroppaUserService.dto.EmailDetails;
-import com.droppa.interfaces.EmailService;
+import com.droppa.DroppaDriverService.dto.EmailDetails;
+import com.droppa.DroppaDriverService.interfaces.EmailService;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;

@@ -1,9 +1,9 @@
 /**
  *
  */
-package com.droppa.DroppaDriverService.entity;
+package com.droppa.DroppaBookingService.entity;
 
-import com.droppa.DroppaDriverService.enums.RentalStatus;
+import com.droppa.DroppaBookingService.enums.RentalStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

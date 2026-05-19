@@ -28,7 +28,7 @@ public class Company {
 	private String companyId;
 	private String companyName;
 //	@OneToOne
-//	private Person owner;
+	private int ownerId;
 	private String location;
 //	@ElementCollection
 //	private List<Vehicle> vehicles;

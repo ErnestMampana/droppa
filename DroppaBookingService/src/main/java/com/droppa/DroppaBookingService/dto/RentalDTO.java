@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.droppa.DroppaDriverService.dto;
+package com.droppa.DroppaBookingService.dto;
 
 import java.time.LocalDate;
 

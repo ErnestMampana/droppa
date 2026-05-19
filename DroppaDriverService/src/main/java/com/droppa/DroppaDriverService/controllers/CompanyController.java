@@ -1,13 +1,13 @@
 /**
  * 
  */
-package com.droppa.controllers;
+package com.droppa.DroppaDriverService.controllers;
 
 import java.util.List;
 
-import com.droppa.dto.CompanyDTO;
-import com.droppa.models.Company;
-import com.droppa.services.CompanyService;
+import com.droppa.DroppaDriverService.dto.CompanyDTO;
+import com.droppa.DroppaDriverService.entity.Company;
+import com.droppa.DroppaDriverService.services.CompanyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

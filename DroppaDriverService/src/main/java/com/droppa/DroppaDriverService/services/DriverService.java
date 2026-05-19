@@ -3,14 +3,14 @@ package com.droppa.DroppaDriverService.services;
 import java.util.List;
 import java.util.Optional;
 
-import com.droppa.DroppaUserService.enums.AccountStatus;
-import com.droppa.DroppaUserService.common.ClientException;
-import com.droppa.DroppaUserService.dto.DriverDTO;
-import com.droppa.DroppaUserService.models.DriverAccount;
-import com.droppa.DroppaUserService.models.Vehicle;
-import com.droppa.DroppaUserService.models.VehicleDriver;
-import com.droppa.DroppaUserService.repositories.DriverAccountRepository;
-import com.droppa.DroppaUserService.repositories.VehicleDriverRepository;
+import com.droppa.DroppaDriverService.enums.AccountStatus;
+import com.droppa.DroppaDriverService.exception.ClientException;
+import com.droppa.DroppaDriverService.dto.DriverDTO;
+import com.droppa.DroppaDriverService.entity.DriverAccount;
+import com.droppa.DroppaDriverService.entity.Vehicle;
+import com.droppa.DroppaDriverService.entity.VehicleDriver;
+import com.droppa.DroppaDriverService.repositories.DriverAccountRepository;
+import com.droppa.DroppaDriverService.repositories.VehicleDriverRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

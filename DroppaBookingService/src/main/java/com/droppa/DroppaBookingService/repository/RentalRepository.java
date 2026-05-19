@@ -1,13 +1,13 @@
 /**
  * 
  */
-package com.droppa.DroppaDriverService.repositories;
+package com.droppa.DroppaBookingService.repository;
 
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.droppa.DroppaDriverService.entity.Rental;
+import com.droppa.DroppaBookingService.entity.Rental;
 
 /**
  * @author Ernest Mampana

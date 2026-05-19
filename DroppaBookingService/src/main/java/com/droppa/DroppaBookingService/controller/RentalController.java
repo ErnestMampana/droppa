@@ -1,10 +1,10 @@
-package com.droppa.controllers;
+package com.droppa.DroppaBookingService.controller;
 
 import com.droppa.DroppaBookingService.dto.PaymentDAO;
 import com.droppa.DroppaBookingService.entity.Booking;
-import com.droppa.dto.RentalDTO;
-import com.droppa.models.Rental;
-import com.droppa.services.RentalService;
+import com.droppa.DroppaBookingService.dto.RentalDTO;
+import com.droppa.DroppaBookingService.entity.Rental;
+import com.droppa.DroppaBookingService.service.RentalService;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -25,11 +25,11 @@ public class RentalController {
 		return ResponseEntity.ok(rentalService.createRental(rentalDTO));
 	}
 
-	@PutMapping("/makePayment")
-	public ResponseEntity<Rental> makePayments(@RequestBody PaymentDAO payment) {
-		Rental rentalBooking = rentalService.makePayments(payment);
-		return new ResponseEntity<Rental>(rentalBooking, HttpStatus.OK);
-	}
+//	@PutMapping("/makePayment")
+//	public ResponseEntity<Rental> makePayments(@RequestBody PaymentDAO payment) {
+//		Rental rentalBooking = rentalService.makePayments(payment);
+//		return new ResponseEntity<Rental>(rentalBooking, HttpStatus.OK);
+//	}.
 
 	@GetMapping("/viewAllBookings")
 	public ResponseEntity<List<Rental>> viewAllBookings() {

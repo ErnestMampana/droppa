@@ -1,9 +1,9 @@
 /**
  * 
  */
-package com.droppa.interfaces;
+package com.droppa.DroppaDriverService.interfaces;
 
-import com.droppa.models.Courier;
+import com.droppa.DroppaDriverService.entity.Courier;
 
 /**
  * @author Ernest Mampana
@@ -11,6 +11,6 @@ import com.droppa.models.Courier;
  */
 public interface CourierService {
 	
-	Courier createCourierBooking(Courier courier);
+	//Courier createCourierBooking(Courier courier);
 
 }
