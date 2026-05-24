@@ -13,17 +13,20 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.droppa.DroppaUserService.repository.UserAccountRepository;
+import com.droppa.DroppaUserService.security.SecurityUserDetails;
 
 @Configuration
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
   private final UserAccountRepository repository;
-
+  
   @Bean
   public UserDetailsService userDetailsService() {
-    return username -> repository.findByEmail(username)
-        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+      return username -> repository.findByEmail(username)
+              .map(SecurityUserDetails::new)
+              .orElseThrow(() ->
+                      new UsernameNotFoundException("User not found"));
   }
 
   @Bean

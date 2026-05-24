@@ -1,4 +1,4 @@
-package com.droppa.DroppaUserService.auth;
+package com.droppa.DroppaUserService.security;
 
 import com.droppa.DroppaUserService.repository.TokenRepository;
 import com.droppa.DroppaUserService.service.JwtService;

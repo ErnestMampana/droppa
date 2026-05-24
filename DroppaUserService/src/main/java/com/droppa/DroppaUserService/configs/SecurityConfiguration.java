@@ -1,6 +1,5 @@
 package com.droppa.DroppaUserService.configs;
 
-import com.droppa.DroppaUserService.auth.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +11,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
+
+import com.droppa.DroppaUserService.security.JwtAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -28,7 +29,9 @@ public class SecurityConfiguration {
               .csrf(csrf -> csrf
                       .disable())
               .authorizeHttpRequests(requests -> requests
-                      .requestMatchers("")
+                      .requestMatchers("/swagger-ui/**",
+                      		 "/v3/api-docs/**",
+                      		"/swagger-ui.html/**")
                       .permitAll()
                       .anyRequest().permitAll())
               .sessionManagement(management -> management

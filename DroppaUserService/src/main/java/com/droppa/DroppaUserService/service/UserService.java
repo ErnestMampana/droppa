@@ -46,18 +46,11 @@ public class UserService {
 
 		UserAccount user = getUserByEmail(email);
 
-		validateEmailConfirmation(user, code);
-
-		user.setOtp("0");
-		user.setConfirmed(true);
-		user.setStatus(AccountStatus.ACTIVE);
+		user.confirmEmail(code);
 
 		Token tokenData = tokenRepository.findByUserId(user.getId()).get();//.orElseThrow(() -> new TokenNotFoundException(user.getId()));
 
-		return UserResponseDTO.builder().cellphone(user.getPerson().getCellphone())
-				.surname(user.getPerson().getSurname()).userName(user.getPerson().getUserName())
-				.token(tokenData.getToken()).walletBalance(user.getPerson().getWalletBalance())
-				.email(user.getEmail()).build();
+		return buildUserResponse(user, tokenData.getToken());
 
 	}
 
@@ -66,6 +59,14 @@ public class UserService {
 		return userAccountRepository.findByEmail(email).orElseThrow(() -> new ClientException("Account not found"));
 
 	}
+	
+//	public UserAccount getActiveUser(String email) {
+//
+//	    UserAccount user = getUserByEmail(email);
+//	    user.ensureCanLogin();
+//
+//	    return user;
+//	}
 
 	@Transactional
 	public String requestPasswordReset(String email) {
@@ -73,13 +74,8 @@ public class UserService {
 
 		UserAccount userAccount = getUserByEmail(email);
 
-		if (userAccount.getEmail().equals(email)) {
 			otp = partyService.generateOTP(userAccount.getPerson().getCellphone());
-			userAccount.setOtp(otp);
-			userAccount.setStatus(AccountStatus.AWAITING_PWD_RESET);
-		} else {
-			throw new ClientException("User not found");
-		}
+			userAccount.requestPasswordReset(otp);
 
 		return otp;
 	}
@@ -87,13 +83,7 @@ public class UserService {
 	@Transactional
 	public UserAccount resetPassword(String otp, String username, String password) {
 		UserAccount userAcc = getUserByEmail(username);
-		if (userAcc.getStatus().equals(AccountStatus.AWAITING_PWD_RESET)) {
-			if (userAcc.getOtp().equals(otp)) {
-				userAcc.setOtp("0");
-				userAcc.setPassword(passwordEncoder.encode(password));
-				userAcc.setStatus(AccountStatus.ACTIVE);
-			}
-		}
+		userAcc.resetPassword(otp, passwordEncoder.encode(password));				
 		//not happy with the results
 		return userAcc;
 	}
@@ -102,51 +92,20 @@ public class UserService {
 	public BigDecimal loadWallet(String username, BigDecimal amount) {
 
 		UserAccount userAccount = getUserByEmail(username);
-		validateAccountStatus(userAccount.getStatus());
+		userAccount.loadWallet(amount);
 
-		userAccount.getPerson().setWalletBalance(userAccount.getPerson().getWalletBalance().add(amount));
 		return userAccount.getPerson().getWalletBalance();
 
 	}
 	
-	private void validateAccountStatus(AccountStatus accountStatus) {
 
-	    switch (accountStatus) {
-
-	        case AWAITING_CONFIRMATION:
-	            throw new ClientException(
-	                    "Please confirm your account first.");
-
-	        case AWAITING_PWD_RESET:
-	            throw new ClientException(
-	                    "You haven't yet confirmed your new password");
-
-	        case SUSPENDED:
-	            throw new ClientException(
-	                    "Your account has been suspended please contact Droppa Clone for re-activation.");
-
-	        default:
-	            break;
-	    }
+	
+	private UserResponseDTO buildUserResponse(UserAccount user,String token) {
+		return UserResponseDTO.builder().cellphone(user.getPerson().getCellphone())
+				.surname(user.getPerson().getSurname()).userName(user.getPerson().getUserName())
+				.token(token).walletBalance(user.getPerson().getWalletBalance())
+				.email(user.getEmail()).build();
 	}
 	
-	private void validateEmailConfirmation(UserAccount userAccount,String otpCode) {
-		
-		if (userAccount.getStatus() == AccountStatus.ACTIVE) {
-	        throw new ClientException("Account already active");
-	    }
-
-	    if (userAccount.getStatus() != AccountStatus.AWAITING_CONFIRMATION) {
-	        throw new ClientException("Invalid account state");
-	    }
-
-	    if (!userAccount.getOtp().equals(otpCode)) {
-	        throw new ClientException("Invalid OTP");
-	    }
-
-	    if (userAccount.getOtpExpiry().isBefore(LocalDateTime.now())) {
-	        throw new ClientException("OTP expired");
-	    }
-	}
 
 }

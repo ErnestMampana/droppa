@@ -1,8 +1,8 @@
 package com.droppa.DroppaUserService.controller;
 
 import com.droppa.DroppaUserService.service.AuthenticationService;
-import com.droppa.DroppaUserService.auth.AuthenticationResponse;
 import com.droppa.DroppaUserService.exception.ClientException;
+import com.droppa.DroppaUserService.security.AuthenticationResponse;
 import com.droppa.DroppaUserService.dto.AuthenticationRequest;
 import com.droppa.DroppaUserService.dto.CredentialsDTO;
 import com.droppa.DroppaUserService.dto.PersonDTO;

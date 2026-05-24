@@ -13,17 +13,21 @@ import com.droppa.DroppaUserService.entity.UserAccount;
 import com.droppa.DroppaUserService.repository.PersonRepository;
 import com.droppa.DroppaUserService.repository.TokenRepository;
 import com.droppa.DroppaUserService.repository.UserAccountRepository;
+import com.droppa.DroppaUserService.security.SecurityUserDetails;
 import com.droppa.DroppaUserService.service.JwtService;
 import com.droppa.DroppaUserService.service.PartyService;
 import com.droppa.DroppaUserService.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -46,90 +50,156 @@ public class AuthenticationService {
 	private final ModelMapper modelMapper;
 	private final UserService userService;
 
-	public UserResponseDTO createUserAccount(PersonDTO person) {
-		try {
-			log.info("===================== Requesting Account create.");
-			Optional<UserAccount> userAccount = userAccountRepository.findByEmail(person.getEmail());
+//	public UserResponseDTO createUserAccount(PersonDTO person) {
+//		try {
+//			log.info("Requesting Account create.");
+//
+//			userExists(person.getEmail());
+//			personExists(person.getEmail());
+//
+//			String otp = partyService.generateOTP(person.getEmail());
+//
+//			Person owner = modelMapper.map(person, Person.class);
+//			
+//			UserAccount user = UserAccount.createPendingAccount(person.getEmail(), person.getPassword(), owner, Role.USER, otp, LocalDateTime.now().plusMinutes(30));
+//			
+//			personRepository.save(owner);
+//
+//			userAccountRepository.save(user);
+//
+//			log.info("Account created for " + user.getPerson().getUserName()
+//					+ " " + user.getPerson().getSurname());
+//			
+//			UserDetails userDetails = new SecurityUserDetails(user);
+//
+//			var jwtToken = jwtService.generateToken(userDetails);
+//			
+//
+//			saveUserToken(user, jwtToken);
+//
+//			UserResponseDTO userResponse = modelMapper.map(owner, UserResponseDTO.class);
+//
+//			return userResponse;
+//
+//		} catch (Exception e) {
+//			throw new ClientException(e.getMessage());
+//		}
+//	}
+	
+	@Transactional
+	public UserResponseDTO createUserAccount(PersonDTO request) {
 
-			Optional<Person> pers = personRepository.findByEmail(person.getEmail());
+	    log.info("Requesting Account create.");
 
-			if (userAccount.isPresent())
-				throw new ClientException("User already Exist");
+	    userExists(request.getEmail());
+	    personExists(request.getEmail());
 
-			if (pers.isPresent())
-				if (pers.get().getEmail().equals(person.getEmail()))
-					throw new ClientException("person exist");
+	    String otp = partyService.generateOTP(request.getEmail());
 
-			String otp = partyService.generateOTP(person.getEmail());
+	    Person owner = Person.create(
+	            request.getUserName(),
+	            request.getSurname(),
+	            request.getCellphone(),
+	            request.getEmail()
+	    );
 
-			Person owner = modelMapper.map(person, Person.class);
-			owner.setWalletBalance(BigDecimal.ZERO);			
+	    String encodedPassword =
+	            passwordEncoder.encode(request.getPassword());
 
-			var acc = UserAccount.builder().email(owner.getEmail()).person(owner).confirmed(false).otp(otp).OtpExpiry(LocalDateTime.now().plusMinutes(30))
-					.status(AccountStatus.AWAITING_CONFIRMATION).password(passwordEncoder.encode(person.getPassword()))
-					.role(Role.USER).build();
+	    UserAccount user = UserAccount.createPendingAccount(
+	            request.getEmail(),
+	            encodedPassword,
+	            owner,
+	            Role.USER,
+	            otp,
+	            LocalDateTime.now().plusMinutes(30)
+	    );
 
-			personRepository.save(owner);
+	    userAccountRepository.save(user);
 
-			UserAccount savedUser = userAccountRepository.save(acc);
+	    log.info(
+	            "Account created for {} {}",
+	            user.getPerson().getUserName(),
+	            user.getPerson().getSurname()
+	    );
 
-			log.info("================================= Account created for " + savedUser.getPerson().getUserName()
-					+ " " + savedUser.getPerson().getSurname());
-			
-			var jwtToken = jwtService.generateToken(acc);
+	    UserDetails userDetails =
+	            new SecurityUserDetails(user);
 
-			saveUserToken(savedUser, jwtToken);
+	    String jwtToken =
+	            jwtService.generateToken(userDetails);
 
-			UserResponseDTO userResponse = modelMapper.map(owner, UserResponseDTO.class);
+	    saveUserToken(user, jwtToken);
 
-			return userResponse;
-
-		} catch (Exception e) {
-			throw new ClientException(e.getMessage());
-		}
+	    return UserResponseDTO.builder()
+	            .userName(user.getPerson().getUserName())
+	            .surname(user.getPerson().getSurname())
+	            .email(user.getEmail())
+	            .cellphone(user.getPerson().getCellphone())
+	            .walletBalance(user.getPerson().getWalletBalance())
+	            .token(jwtToken)
+	            .build();
 	}
+	
 
+
+//	public UserResponseDTO authenticate(CredentialsDTO request) {
+//
+//		var user = userService.getActiveUser(request.getUsername());
+//
+//		authenticationManager
+//				.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+//
+//		log.info("Useraccount Logged In {} ", user.getEmail());
+//		log.info("Useraccount Logged In {} {}", user.getPerson().getUserName(), user.getPerson().getSurname());
+//
+//		UserDetails userDetails = new SecurityUserDetails(user);
+//
+//		var jwtToken = jwtService.generateToken(userDetails);
+//
+//		revokeAllUserTokens(user);
+//
+//		saveUserToken(user, jwtToken);
+//
+//		Person owner = user.getPerson();
+//
+//		UserResponseDTO userResponseDTO = modelMapper.map(owner, UserResponseDTO.class);
+//
+//		userResponseDTO.setToken(jwtToken);
+//
+//		return userResponseDTO;
+//	}
+	
 	public UserResponseDTO authenticate(CredentialsDTO request) {
 
-		var user = userService.getUserByEmail(request.getUsername());
+	    authenticationManager.authenticate(
+	            new UsernamePasswordAuthenticationToken(
+	                    request.getUsername(),
+	                    request.getPassword()
+	            )
+	    );
 
-		if (user.isConfirmed()) {
-			if (user.getStatus().equals(AccountStatus.ACTIVE)) {
-				authenticationManager.authenticate(
-						new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+	    UserAccount user = userService.getUserByEmail(request.getUsername());
 
-				log.info("Useraccount Logged In ================= " + user.getEmail());
-				log.info("Useraccount Logged In ================= " + user.getPerson().getUserName() + " "
-						+ user.getPerson().getSurname());
+	    user.ensureIsHealthy();
 
-			} else {
-				if (user.getStatus().equals(AccountStatus.DELETED)) {
-					throw new ClientException(
-							"This account has been deleted, please contact Droppa Clone for re-activation.");
-				} else if (user.getStatus().equals(AccountStatus.AWAITING_PWD_RESET)) {
-					throw new ClientException("User awaiting password reset.");
-				} else {
-					throw new ClientException(
-							"This account has been suspended, please contact Droppa Clone for re-activation.");
-				}
-			}
-		} else {
-			throw new ClientException("Account not confirmed");
-		}
+	    log.info("User logged in {}", user.getEmail());
+	    
+	    UserDetails userDetails =
+	            new SecurityUserDetails(user);
 
-		var jwtToken = jwtService.generateToken(user);
+	    String jwtToken =
+	            jwtService.generateToken(userDetails);
 
-		revokeAllUserTokens(user);
+	    revokeAllUserTokens(user);
+	    saveUserToken(user, jwtToken);
 
-		saveUserToken(user, jwtToken);
-
-		Person owner = user.getPerson();
-
-		UserResponseDTO userResponseDTO = modelMapper.map(owner, UserResponseDTO.class);
-
-		userResponseDTO.setToken(jwtToken);
-
-		return userResponseDTO;
+	    return UserResponseDTO.builder()
+	            .email(user.getEmail())
+	            .userName(user.getPerson().getUserName())
+	            .surname(user.getPerson().getSurname())
+	            .token(jwtToken)
+	            .build();
 	}
 
 	private void saveUserToken(UserAccount user, String jwtToken) {
@@ -148,4 +218,18 @@ public class AuthenticationService {
 		});
 		tokenRepository.saveAll(validUserTokens);
 	}
+	
+	private void userExists(String email) {		
+		if(userAccountRepository.findByEmail(email).isPresent()) 
+			throw new ClientException("User already exists");
+		
+		
+	}
+	
+	private void personExists(String email) {
+		if (personRepository.findByEmail(email).isPresent())
+			throw new ClientException("User already exists");
+	}
+
+	
 }

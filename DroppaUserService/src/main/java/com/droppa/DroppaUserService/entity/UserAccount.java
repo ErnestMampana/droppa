@@ -1,88 +1,142 @@
 package com.droppa.DroppaUserService.entity;
 
-import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.List;
-
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
 import com.droppa.DroppaUserService.enums.AccountStatus;
 import com.droppa.DroppaUserService.enums.Role;
+import com.droppa.DroppaUserService.exception.ClientException;
+import com.droppa.DroppaUserService.security.CredentialManager;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "UserAccount")
-public class UserAccount implements UserDetails {
+public class UserAccount {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id;
-	private String email;
-	@OneToOne
-	private Person person;
-	private boolean confirmed;
-	private String otp;
-	private LocalDateTime OtpExpiry;
-	@Enumerated(EnumType.STRING)
-	private AccountStatus status;
-	private String password;
-	@Enumerated(EnumType.STRING)
-	private Role role;
-	//private List<Booking> bookings; to look for solution, or just use gson encoder
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
 
-	@OneToMany(mappedBy = "user")
-	private List<Token> tokens;
+    private String email;
 
-	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return List.of(new SimpleGrantedAuthority(role.name()));
-	}
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "person_id")
+    private Person person;
 
-	@Override
-	public String getPassword() {
-		return password;
-	}
+    private boolean confirmed;
 
-	@Override
-	public String getUsername() {
-		// TODO Auto-generated method stub
-		return email;
-	}
+    @Enumerated(EnumType.STRING)
+    private AccountStatus status;
 
-	@Override
-	public boolean isAccountNonExpired() {
-		// TODO Auto-generated method stub
-		return true;
-	}
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
-	@Override
-	public boolean isAccountNonLocked() {
-		// TODO Auto-generated method stub
-		return true;
-	}
+    @Embedded
+    private CredentialManager credentials;
 
-	@Override
-	public boolean isCredentialsNonExpired() {
-		// TODO Auto-generated method stub
-		return true;
-	}
+    public static UserAccount createPendingAccount(
+            String email,
+            String encodedPassword,
+            Person person,
+            Role role,
+            String otp,
+            LocalDateTime expiry
+    ) {
 
-	@Override
-	public boolean isEnabled() {
-		// TODO Auto-generated method stub
-		return true;
-	}
+        UserAccount user = new UserAccount();
 
+        user.email = email;
+        user.person = person;
+        user.role = role;
+
+        user.credentials = new CredentialManager(encodedPassword);
+        user.credentials.requestPasswordReset(otp);
+
+        user.status = AccountStatus.AWAITING_CONFIRMATION;
+        user.confirmed = false;
+
+        return user;
+    }
+
+    public void confirmEmail(String otpCode) {
+
+        if (!credentials.isOtpValid(otpCode)) {
+            throw new ClientException("Invalid OTP");
+        }
+
+        credentials.clearOtp();
+
+        this.confirmed = true;
+        this.status = AccountStatus.ACTIVE;
+    }
+
+    public void requestPasswordReset(String otp) {
+
+        ensureCanModifyAccount();
+
+        credentials.requestPasswordReset(otp);
+
+        this.status = AccountStatus.AWAITING_PWD_RESET;
+    }
+
+    public void resetPassword(String otp, String password) {
+
+        credentials.resetPassword(otp, password);
+
+        this.status = AccountStatus.ACTIVE;
+    }
+
+    public void loadWallet(BigDecimal amount) {
+
+        ensureCanModifyAccount();
+
+        person.creditWallet(amount);
+    }
+
+    private void ensureCanModifyAccount() {
+
+        if (status == AccountStatus.SUSPENDED) {
+            throw new ClientException("Account suspended");
+        }
+
+        if (status == AccountStatus.AWAITING_CONFIRMATION) {
+            throw new ClientException("Please confirm account first");
+        }
+
+        if (status == AccountStatus.AWAITING_PWD_RESET) {
+            throw new ClientException("Password reset pending");
+        }
+    }
+    
+    public String getEncodedPassword() {
+        return credentials.getPassword();
+    }
+    
+    public void ensureIsHealthy() {
+
+        if (status == AccountStatus.SUSPENDED) {
+            throw new ClientException("Account is suspended");
+        }
+
+        if (status == AccountStatus.DELETED) {
+            throw new ClientException("Account has been deleted");
+        }
+
+        if (status == AccountStatus.AWAITING_CONFIRMATION) {
+            throw new ClientException("Account not yet confirmed");
+        }
+
+        if (status == AccountStatus.AWAITING_PWD_RESET) {
+            throw new ClientException("Password reset in progress");
+        }
+
+        if (!confirmed || status != AccountStatus.ACTIVE) {
+            throw new ClientException("Account is not active");
+        }
+    }
 }

@@ -1,4 +1,4 @@
-package com.droppa.DroppaUserService.auth;
+package com.droppa.DroppaUserService.security;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

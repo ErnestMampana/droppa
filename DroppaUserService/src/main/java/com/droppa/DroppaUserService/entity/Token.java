@@ -1,6 +1,8 @@
 package com.droppa.DroppaUserService.entity;
 
 import com.droppa.DroppaUserService.enums.TokenType;
+import com.droppa.DroppaUserService.security.SecurityUserDetails;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
