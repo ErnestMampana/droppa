@@ -1,8 +1,10 @@
 package com.droppa.DroppaUserService.service;
 
 import com.droppa.DroppaUserService.exception.ClientException;
+import com.droppa.DroppaUserService.dto.ConfirmEmailRequest;
 import com.droppa.DroppaUserService.dto.CredentialsDTO;
 import com.droppa.DroppaUserService.dto.PersonDTO;
+import com.droppa.DroppaUserService.dto.ResetPasswordRequest;
 import com.droppa.DroppaUserService.dto.UserResponseDTO;
 import com.droppa.DroppaUserService.enums.AccountStatus;
 import com.droppa.DroppaUserService.enums.Role;
@@ -47,44 +49,8 @@ public class AuthenticationService {
 	private final PasswordEncoder passwordEncoder;
 	private final JwtService jwtService;
 	private final AuthenticationManager authenticationManager;
-	private final ModelMapper modelMapper;
 	private final UserService userService;
 
-//	public UserResponseDTO createUserAccount(PersonDTO person) {
-//		try {
-//			log.info("Requesting Account create.");
-//
-//			userExists(person.getEmail());
-//			personExists(person.getEmail());
-//
-//			String otp = partyService.generateOTP(person.getEmail());
-//
-//			Person owner = modelMapper.map(person, Person.class);
-//			
-//			UserAccount user = UserAccount.createPendingAccount(person.getEmail(), person.getPassword(), owner, Role.USER, otp, LocalDateTime.now().plusMinutes(30));
-//			
-//			personRepository.save(owner);
-//
-//			userAccountRepository.save(user);
-//
-//			log.info("Account created for " + user.getPerson().getUserName()
-//					+ " " + user.getPerson().getSurname());
-//			
-//			UserDetails userDetails = new SecurityUserDetails(user);
-//
-//			var jwtToken = jwtService.generateToken(userDetails);
-//			
-//
-//			saveUserToken(user, jwtToken);
-//
-//			UserResponseDTO userResponse = modelMapper.map(owner, UserResponseDTO.class);
-//
-//			return userResponse;
-//
-//		} catch (Exception e) {
-//			throw new ClientException(e.getMessage());
-//		}
-//	}
 	
 	@Transactional
 	public UserResponseDTO createUserAccount(PersonDTO request) {
@@ -131,44 +97,59 @@ public class AuthenticationService {
 
 	    saveUserToken(user, jwtToken);
 
-	    return UserResponseDTO.builder()
-	            .userName(user.getPerson().getUserName())
-	            .surname(user.getPerson().getSurname())
-	            .email(user.getEmail())
-	            .cellphone(user.getPerson().getCellphone())
-	            .walletBalance(user.getPerson().getWalletBalance())
-	            .token(jwtToken)
-	            .build();
+	    return userService.buildUserResponse(user, jwtToken);
+//	    UserResponseDTO.builder()
+//	            .userName(user.getPerson().getUserName())
+//	            .surname(user.getPerson().getSurname())
+//	            .email(user.getEmail())
+//	            .cellphone(user.getPerson().getCellphone())
+//	            .walletBalance(user.getPerson().getWalletBalance())
+//	            .token(jwtToken)
+//	            .build();
 	}
 	
+	
+	@Transactional
+	public UserResponseDTO confirmEmail(ConfirmEmailRequest request) {
 
+		UserAccount user = 
+				userService.getUserByEmail(request.getEmail());
 
-//	public UserResponseDTO authenticate(CredentialsDTO request) {
-//
-//		var user = userService.getActiveUser(request.getUsername());
-//
-//		authenticationManager
-//				.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
-//
-//		log.info("Useraccount Logged In {} ", user.getEmail());
-//		log.info("Useraccount Logged In {} {}", user.getPerson().getUserName(), user.getPerson().getSurname());
-//
-//		UserDetails userDetails = new SecurityUserDetails(user);
-//
-//		var jwtToken = jwtService.generateToken(userDetails);
-//
-//		revokeAllUserTokens(user);
-//
-//		saveUserToken(user, jwtToken);
-//
-//		Person owner = user.getPerson();
-//
-//		UserResponseDTO userResponseDTO = modelMapper.map(owner, UserResponseDTO.class);
-//
-//		userResponseDTO.setToken(jwtToken);
-//
-//		return userResponseDTO;
-//	}
+		user.confirmEmail(request.getCode());
+
+		Token tokenData = tokenRepository.findByUserId(user.getId()).get();//.orElseThrow(() -> new TokenNotFoundException(user.getId()));
+
+		return userService.buildUserResponse(user, tokenData.getToken());
+
+	}
+	
+	
+	@Transactional
+	public String requestPasswordReset(String email) {
+		String otp = "";
+
+		UserAccount userAccount = userService.getUserByEmail(email);
+
+			otp = partyService.generateOTP(userAccount.getPerson().getCellphone());
+			userAccount.requestPasswordReset(otp);
+
+		return otp;
+	}
+	
+	
+	@Transactional
+	public UserResponseDTO resetPassword(ResetPasswordRequest request) {
+		UserAccount userAcc = userService.getUserByEmail(request.getUsername());
+		userAcc.resetPassword(request.getOtp(), passwordEncoder.encode(request.getPassword()));	
+		UserDetails userDetails =
+	            new SecurityUserDetails(userAcc);
+
+	    String jwtToken =
+	            jwtService.generateToken(userDetails);
+
+		return userService.buildUserResponse(userAcc, jwtToken);
+	}
+	
 	
 	public UserResponseDTO authenticate(CredentialsDTO request) {
 
@@ -194,12 +175,7 @@ public class AuthenticationService {
 	    revokeAllUserTokens(user);
 	    saveUserToken(user, jwtToken);
 
-	    return UserResponseDTO.builder()
-	            .email(user.getEmail())
-	            .userName(user.getPerson().getUserName())
-	            .surname(user.getPerson().getSurname())
-	            .token(jwtToken)
-	            .build();
+	    return userService.buildUserResponse(user, jwtToken);
 	}
 
 	private void saveUserToken(UserAccount user, String jwtToken) {
@@ -221,9 +197,7 @@ public class AuthenticationService {
 	
 	private void userExists(String email) {		
 		if(userAccountRepository.findByEmail(email).isPresent()) 
-			throw new ClientException("User already exists");
-		
-		
+			throw new ClientException("User already exists");		
 	}
 	
 	private void personExists(String email) {

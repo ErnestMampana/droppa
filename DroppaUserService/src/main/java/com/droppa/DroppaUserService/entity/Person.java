@@ -32,43 +32,36 @@ public class Person {
 	private String cellphone;
 	private BigDecimal walletBalance = BigDecimal.ZERO;
 	private String email;
-	
 
-	public static Person create(
-			 String userName,
-			 String surname,
-			 String cellphone,
-			 String email
+	public static Person create(String userName, String surname, String cellphone, String email
 
-    ) {
+	) {
 
-        Person person = new Person();
+		Person person = new Person();
 
-        person.userName = userName;
-        person.surname = surname;
-        person.cellphone = cellphone;
-        person.email = email;
+		person.userName = userName;
+		person.surname = surname;
+		person.cellphone = cellphone;
+		person.email = email;
 
-        return person;
-    }
-	public void creditWallet(BigDecimal amount) {
-
-
-	    this.walletBalance = this.walletBalance.add(amount);
+		return person;
 	}
-	
+
+	public void creditWallet(BigDecimal amount) {
+		this.walletBalance = this.walletBalance.add(amount);
+	}
+
 	public void debit(BigDecimal amount) {
 
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new ClientException("Invalid amount");
-        }
+		if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+			throw new ClientException("Invalid amount");
+		}
 
-        if (walletBalance.compareTo(amount) < 0) {
-            throw new ClientException("Insufficient balance");
-        }
+		if (walletBalance.compareTo(amount) < 0) {
+			throw new ClientException("Insufficient balance");
+		}
 
-        this.walletBalance = this.walletBalance.subtract(amount);
-    }
-
+		this.walletBalance = this.walletBalance.subtract(amount);
+	}
 
 }

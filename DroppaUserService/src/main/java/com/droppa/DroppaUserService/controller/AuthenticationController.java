@@ -1,23 +1,23 @@
 package com.droppa.DroppaUserService.controller;
 
 import com.droppa.DroppaUserService.service.AuthenticationService;
-import com.droppa.DroppaUserService.exception.ClientException;
-import com.droppa.DroppaUserService.security.AuthenticationResponse;
-import com.droppa.DroppaUserService.dto.AuthenticationRequest;
+
+import com.droppa.DroppaUserService.dto.ConfirmEmailRequest;
 import com.droppa.DroppaUserService.dto.CredentialsDTO;
+import com.droppa.DroppaUserService.dto.PasswordResetRequest;
 import com.droppa.DroppaUserService.dto.PersonDTO;
-import com.droppa.DroppaUserService.dto.RegisterRequest;
+import com.droppa.DroppaUserService.dto.ResetPasswordRequest;
 import com.droppa.DroppaUserService.dto.UserResponseDTO;
-import com.droppa.DroppaUserService.entity.UserAccount;
 
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -35,5 +35,22 @@ public class AuthenticationController {
 	public ResponseEntity<UserResponseDTO> authenticate(@RequestBody CredentialsDTO request) {
 		return ResponseEntity.ok(service.authenticate(request));
 	}
+	
+	@PostMapping("/confirm-email")
+    public ResponseEntity<UserResponseDTO> confirmEmail(@RequestBody ConfirmEmailRequest request) {
+        return ResponseEntity.ok(service.confirmEmail(request));
+    }
+
+    @PostMapping("/password-reset/request")
+    public ResponseEntity<String> requestPasswordReset(@RequestBody PasswordResetRequest request) {
+        return ResponseEntity.ok(service.requestPasswordReset(request.getEmail()));
+    }
+    
+    @PutMapping("/reset-password")
+	public ResponseEntity<UserResponseDTO> resetPassword(@RequestBody ResetPasswordRequest request) {
+    	return ResponseEntity.ok(service.resetPassword(request));
+	}
+    
+    
 
 }

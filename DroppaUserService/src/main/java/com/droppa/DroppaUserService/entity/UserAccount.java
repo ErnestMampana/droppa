@@ -85,9 +85,7 @@ public class UserAccount {
     }
 
     public void resetPassword(String otp, String password) {
-
         credentials.resetPassword(otp, password);
-
         this.status = AccountStatus.ACTIVE;
     }
 

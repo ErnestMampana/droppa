@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -26,50 +27,11 @@ public class UserController {
 
 	private final UserService userService;
 
-	@GetMapping("/viewallusers")
-	public List<UserAccount> getAllUsers() {
-		return userService.getAllUsers();
-	}
-
-//	@PUT
-//	@Path("/mobile/confirmation/{mobile}/{code}")
-//	public Response confirmMobile(@PathParam("code") int code, @PathParam("mobile") String mobile) {
-//		String resp = userService.confirmMobile(mobile, code);
-//		return Response.ok(resp).build();
-//	}
-//
-	@PutMapping("/email/confirmation/{email}")
-	public ResponseEntity<UserResponseDTO> confirmEmail(@PathVariable("email") String email,
-			@RequestParam(required = true) String code) {
-		UserResponseDTO resp = userService.confirmEmailAccount(email, code);
-		return new ResponseEntity<UserResponseDTO>(resp, HttpStatus.OK);
-	}
 
 	@GetMapping("/getuserbyemail/{email}")
 	public ResponseEntity<Person> getUserByEmail(@PathVariable("email") String email) {
-		Person account = userService.getUserByEmail(email).getPerson();
-		return new ResponseEntity<Person>(account, HttpStatus.OK);
+		return new ResponseEntity<Person>(userService.getUserByEmail(email).getPerson(), HttpStatus.OK);
 	}
 
-
-	@GetMapping("/requestPasswordReset/{email}")
-	public ResponseEntity<String> requestPasswordReset(@PathVariable("email") String email) {
-		String otp = userService.requestPasswordReset(email);
-		return new ResponseEntity<String>(otp, HttpStatus.OK);
-	}
-
-	@PutMapping("/resetPassword/{username}")
-	public ResponseEntity<UserAccount> resetPassword(@PathVariable("username") String username,
-			@RequestParam(required = true) String otp, @RequestParam(required = true) String password) {
-		UserAccount userAcc = userService.resetPassword(otp, username, password);
-		return new ResponseEntity<UserAccount>(userAcc, HttpStatus.OK);
-	}
-
-	@PutMapping("/loadwallet/{username}")
-	public ResponseEntity<BigDecimal> loadWallet(@PathVariable("username") String username,
-			@RequestParam(required = true) BigDecimal amount) {
-		BigDecimal userAccount = userService.loadWallet(username, amount);
-		return new ResponseEntity<BigDecimal>(userAccount,HttpStatus.OK);
-	}
 
 }
