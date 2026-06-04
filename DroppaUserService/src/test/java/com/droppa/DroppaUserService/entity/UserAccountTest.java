@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import com.droppa.DroppaUserService.enums.AccountStatus;
 import com.droppa.DroppaUserService.enums.Role;
 import com.droppa.DroppaUserService.exception.ClientException;
+import com.droppa.DroppaUserService.exception.OtpExpiredException;
 
 class UserAccountTest {
 
@@ -35,13 +36,17 @@ class UserAccountTest {
     }
 
     private UserAccount createAccount(String otp) {
+        return createAccount(otp, LocalDateTime.now().plusMinutes(10));
+    }
+
+    private UserAccount createAccount(String otp, LocalDateTime expiry) {
         return UserAccount.createPendingAccount(
                 "ernest@gmail.com",
                 "encoded-password",
                 person,
                 Role.USER,
                 otp,
-                LocalDateTime.now().plusMinutes(10)
+                expiry
         );
     }
 
@@ -78,6 +83,20 @@ class UserAccountTest {
         );
 
         assertEquals("Invalid OTP", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw exception for expired OTP")
+    void shouldThrowExceptionForExpiredOtp() {
+
+        UserAccount expiredAccount = createAccount("12345", LocalDateTime.now().minusMinutes(1));
+
+        OtpExpiredException ex = assertThrows(
+                OtpExpiredException.class,
+                () -> expiredAccount.confirmEmail("12345")
+        );
+
+        assertEquals("OTP has expired", ex.getMessage());
     }
 
 

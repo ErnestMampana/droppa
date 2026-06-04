@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "UserAccount")
+@Table(name = "user_account")
 public class UserAccount {
 
     @Id
@@ -55,7 +55,7 @@ public class UserAccount {
         user.role = role;
 
         user.credentials = new CredentialManager(encodedPassword);
-        user.credentials.requestPasswordReset(otp);
+        user.credentials.setOtp(otp, expiry);
 
         user.status = AccountStatus.AWAITING_CONFIRMATION;
         user.confirmed = false;
@@ -65,9 +65,7 @@ public class UserAccount {
 
     public void confirmEmail(String otpCode) {
 
-        if (!credentials.isOtpValid(otpCode)) {
-            throw new ClientException("Invalid OTP");
-        }
+        credentials.validateOtp(otpCode);
 
         credentials.clearOtp();
 
@@ -87,6 +85,10 @@ public class UserAccount {
     public void resetPassword(String otp, String password) {
         credentials.resetPassword(otp, password);
         this.status = AccountStatus.ACTIVE;
+    }
+
+    public void refreshOtp(String otp) {
+        credentials.setOtp(otp, LocalDateTime.now().plusMinutes(5));
     }
 
     public void loadWallet(BigDecimal amount) {

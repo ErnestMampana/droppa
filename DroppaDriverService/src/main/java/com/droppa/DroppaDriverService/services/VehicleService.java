@@ -4,7 +4,6 @@
 package com.droppa.DroppaDriverService.services;
 
 import java.util.List;
-import java.util.Optional;
 
 import com.droppa.DroppaDriverService.exception.ClientException;
 import com.droppa.DroppaDriverService.dto.VehicleDTO;
@@ -12,9 +11,8 @@ import com.droppa.DroppaDriverService.entity.Company;
 import com.droppa.DroppaDriverService.entity.Vehicle;
 import com.droppa.DroppaDriverService.repositories.VehicleRepository;
 
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,43 +22,36 @@ import lombok.RequiredArgsConstructor;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class VehicleService {
 
 	private final VehicleRepository vehicleRepo;
+	private final CompanyService companyService;
 
-	private CompanyService companyService;
-
-	private ModelMapper modelMapper;
-
+	@Transactional(readOnly = true)
 	public Vehicle getVehicleByRegistration(String vehicleReg) {
-		Optional<Vehicle> vehicleOptional = vehicleRepo.findByRegistration(vehicleReg);
-
-		if (vehicleOptional.isPresent()) {
-			return vehicleOptional.get();
-		} else {
-			throw new ClientException("Vehicle not found");
-		}
-
+		return vehicleRepo.findByRegistration(vehicleReg)
+				.orElseThrow(() -> new ClientException("Vehicle not found"));
 	}
 
 	public Vehicle registerVehicle(VehicleDTO vehicleDto) {
-
-		Company company = companyService.getCompanyByCompanyId(vehicleDto.getCompanyId());
-
-		Optional<Vehicle> vehicleOptional = vehicleRepo.findByRegistration(vehicleDto.getRegistration());
-
-		if (vehicleOptional.isPresent()) {
+		if (vehicleRepo.existsByRegistration(vehicleDto.getRegistration())) {
 			throw new ClientException("This vehicle is already registered.");
 		}
 
-		Vehicle vehicle = modelMapper.map(vehicleDto, Vehicle.class);
-		vehicle.setCompany(company);
+		Company company = companyService.getCompanyByCompanyId(vehicleDto.getCompanyId());
+		Vehicle vehicle = Vehicle.register(
+				vehicleDto.getRegistration(),
+				vehicleDto.getMake(),
+				vehicleDto.getType(),
+				vehicleDto.getDiscExpiryDate(),
+				company
+		);
 
-		vehicleRepo.save(vehicle);
-
-		return vehicle;
+		return vehicleRepo.save(vehicle);
 	}
 
+	@Transactional(readOnly = true)
 	public List<Vehicle> getAllVehicles() {
 		return vehicleRepo.findAll();
 	}

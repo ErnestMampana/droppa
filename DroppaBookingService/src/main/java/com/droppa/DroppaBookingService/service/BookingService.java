@@ -1,38 +1,29 @@
-/**
- *
- */
 package com.droppa.DroppaBookingService.service;
 
 import com.droppa.DroppaBookingService.entity.Booking;
-import com.droppa.DroppaBookingService.enums.BookingStatus;
+
+import com.droppa.DroppaBookingService.exceptions.BookingException;
 import com.droppa.DroppaBookingService.repository.BookingRepository;
 
-import com.droppa.DroppaBookingService.exceptions.ClientException;
 import com.droppa.DroppaBookingService.interfaces.UserServiceClient;
 import com.droppa.DroppaBookingService.dto.BookingDTO;
-import com.droppa.DroppaBookingService.dto.CoordinatesDTO;
+
 import com.droppa.DroppaBookingService.dto.PaymentDAO;
 import com.droppa.DroppaBookingService.dto.PersonClient;
-import com.droppa.DroppaBookingService.enums.PaymentMethod;
-import com.droppa.DroppaBookingService.entity.Adress;
+
 import com.droppa.DroppaBookingService.entity.DropDetails;
-import com.droppa.DroppaBookingService.repository.AddressRespository;
 import com.droppa.DroppaBookingService.repository.DropDetailsrepository;
-import com.droppa.DroppaBookingService.service.PartyService;
 //import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.catalina.mapper.Mapper;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+
 
 /**
  * @author Ernest Mampana
@@ -40,261 +31,97 @@ import java.util.UUID;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional
 @Slf4j
 public class BookingService {
 
-	private final PartyService partyService;
+    private final BookingRepository bookingRepository;
+    private final DropDetailsrepository dropRepository;
+    private final PartyService partyService;
+    private final UserServiceClient userClient;
 
-	private final BookingRepository bookingRepository;
+	public Booking createBooking(BookingDTO dto,String email) {
 
-	private final AddressRespository addressRespository;
+		DropDetails dropDetails = buildDropDetails(dto);
 
-	private final DropDetailsrepository dropRepo;
-	
-	private final UserServiceClient userClient;
+		Booking booking = Booking.create(email, dto.pickupadress(), dto.dropoffadress(), dto.date(),
+				dto.time(), dto.bookingPrice(), dto.loads(), dto.labours(), dto.itemsToBeDelivered(),
+				dto.vehicle(), dto.paymentType(), dropDetails, dto.isPaid(), partyService.generateTrackNumber());
 
-	//private final UserService userService;
+		dropRepository.save(dropDetails);
 
-	//private final UserAccountRepository userAccountRepository;
-	
-	
+		return bookingRepository.save(booking);
+	}
 
+	public Booking cancelBooking(String bookingId, String userId) {
 
-	@Transactional
-	public Booking createBooking(BookingDTO bookingDto) {
+		Booking booking = getBookingById(bookingId);
 
-		//validateActiveUser(bookingDto.getUserId());
-
-		DropDetails dropDetails = buildDropDetails(bookingDto);
-
-		Booking booking = buildBooking(bookingDto, dropDetails);
-
-		saveBooking(booking, dropDetails);
+		booking.cancel(userId);
 
 		return booking;
-
 	}
 
-	// Change input parameters to latlong and calculate distance between two geo
-	// locations
-	public double requestPrice(CoordinatesDTO coordinates) {
-		double basePrice = 80.00;
-		// TODO: Calculate distance and assign new price
-		return basePrice;
+	public Booking makePayment(PaymentDAO payment) {
+
+		PersonClient user = userClient.getUserByEmail(payment.getUserId());
+
+		Booking booking = getBookingById(payment.getBookingId());
+
+		booking.pay(user, payment);
+
+		return booking;
 	}
 
-	public List<Booking> getAllBookings() {
-		return bookingRepository.findAll();
+	public Booking assignDriver(String bookingId, String driverId) {
+
+		Booking booking = getBookingById(bookingId);
+
+		booking.assignDriver(driverId);
+
+		return booking;
+	}
+
+	public Booking startDelivery(String bookingId) {
+
+		Booking booking = getBookingById(bookingId);
+
+		booking.startDelivery();
+
+		return booking;
+	}
+
+	public Booking completeBooking(String bookingId) {
+
+		Booking booking = getBookingById(bookingId);
+
+		booking.complete();
+
+		return booking;
 	}
 
 	public Booking getBookingById(String bookingId) {
-		
-		return bookingRepository.findByBookingId(bookingId).
-				orElseThrow(()-> new ClientException("booking not found"));
 
-	}
-
-	public List<Booking> getBookingsByStatus(BookingStatus status) {
-
-		return bookingRepository.findAllByStatus(status).
-				orElseThrow(() -> new ClientException("No booking matching"+ status+"status"));
-
-	}
-
-	public List<Booking> getBookingsByStatusForUser(BookingStatus status, String userId) {
-
-		return bookingRepository.findAllByStatusAndUserId(status, userId).
-				orElseThrow(() -> new ClientException("No bookings matching '" + status + "' status for provided user '" + userId + "'."));
-
-	}
-
-	public List<Booking> getBookingsByDriverId(String driverId) {
-		return bookingRepository.findAllByAssinedDriver(driverId).
-				orElseThrow(() -> new ClientException("No bookings matching assigned driver '" + driverId + "'."));
-	}
-
-	public List<Booking> getBookingByUserId(String userId) {
-		return bookingRepository.findAllByUserId(userId).
-				orElseThrow(() -> new ClientException("No bookings matching assigned driver '" + userId + "'."));
-	}
-
-	
-	@Transactional
-	public Booking cancelBooking(String bookingId, String userId) {
-
-	    Booking booking = getBookingById(bookingId);
-
-	    validateBookingOwnership(booking, userId);
-
-	    validateBookingCanBeCancelled(booking);
-
-	    booking.setStatus(BookingStatus.CANCELLED);
-
-	    return booking;
-	}
-
-//	@Transactional
-//	public Booking makePayments(PaymentDAO payment) {
-//		UserAccount user = userService.getUserByEmail(payment.getUserId());
-//		Booking booking = getBookingById(payment.getBookingId());
-//		if (booking.getUserId().equals(payment.getUserId())) {
-//			if (payment.getPaymentType().equals("Wallet")) {
-//				if(user.getPerson().getWalletBalance() < payment.getBookingPrice())
-//					throw new ClientException("Insufficient funds");
-//				user.getPerson().setWalletBalance(user.getPerson().getWalletBalance() - payment.getBookingPrice());
-//			}				
-//			booking.setPaymentType(payment.getPaymentType());
-//			booking.setPromoCodeUsed(payment.getUsedPromo());
-//			booking.setStatus(BookingStatus.AWAITING_DRIVER);
-//			booking.setPrice(payment.getBookingPrice());
-//			return booking;
-//		} else {
-//			throw new ClientException("Something went wrong, please try again");
-//		}
-//	}
-	
-	
-	@Transactional
-	public Booking makePayment(PaymentDAO payment) {
-
-	    PersonClient user = userClient.getUserByEmail(payment.getUserId());
-
-	    Booking booking =
-	            getBookingById(payment.getBookingId());
-
-	    validateBookingOwnership(booking,user);
-
-	    validateBookingPaymentAllowed(booking);
-
-	    processPayment(user, booking, payment);
-
-	    booking.setPromoCodeUsed(payment.getUsedPromo());
-
-	    booking.setStatus(BookingStatus.AWAITING_DRIVER);
-
-	    return booking;
+		return bookingRepository.findByBookingId(bookingId).orElseThrow(
+				() -> new BookingException("Booking not found"));
 	}
 	
-	
-	private DropDetails buildDropDetails(BookingDTO bookingDto) {
-		return DropDetails.builder().dropOffNames(bookingDto.getDropOffName())
-				.dropOffContact(bookingDto.getDropOffPhone()).pickUpNames(bookingDto.getPickUpName())
-				.pickUpContact(bookingDto.getPickUpCellphone()).build();
+	public List<Booking> getBookingsForAuthenticatedDriver(String driverIdFromToken) {
+
+	    return bookingRepository
+	            .findAllByAssinedDriver(driverIdFromToken);
 	}
 	
-	private Booking buildBooking(BookingDTO bookingDto,DropDetails dropDetails) {
-		return Booking.builder().bookingId(UUID.randomUUID().toString()).pickUpAddess(bookingDto.getPickupadress())
-				.userId(bookingDto.getUserId()).dropOffAdress(bookingDto.getDropoffadress())
-				.bookingDate(bookingDto.getDate()).time(bookingDto.getTime()).price(bookingDto.getBookingPrice())
-				.itemsToBeDelivered(bookingDto.getItemsToBeDelivered()).labours(bookingDto.getLabours())
-				.paymentType(bookingDto.getPaymentType()).dropDetails(dropDetails).loads(bookingDto.getLoads())
-				.assinedDriver(null).vehicleType(bookingDto.getVehicle()).status(bookingDto.isPaid() ? 
-						BookingStatus.AWAITING_DRIVER : BookingStatus.AWAITING_PAYMENT)
-				.trackNumber(partyService.generateTracknumber()).build();
-	}
-	
-	private void saveBooking(Booking booking,DropDetails dropDetails) {
-		log.info("Booking {} has been created", booking.getBookingId());
-		dropRepo.save(dropDetails);
-		bookingRepository.save(booking);
-	}
-	
-	
-//	private void validateActiveUser(String email) {
-//
-//	    UserAccount user = userAccountRepository.findByEmail(email)
-//	            .orElseThrow(() ->
-//	                    new ClientException("User account not found"));
-//
-//	    if (!AccountStatus.ACTIVE.equals(user.getStatus())) {
-//	        throw new ClientException("User account is not active");
-//	    }
-//	}
-	
-	private void validateBookingOwnership(
-	        Booking booking,
-	        String userId) {
-
-	    if (!booking.getUserId().equals(userId)) {
-	        throw new ClientException(
-	                "You are not allowed to cancel this booking");
-	    }
-	}
-	
-	private void validateBookingCanBeCancelled(Booking booking) {
-
-	    switch (booking.getStatus()) {
-
-	        case CANCELLED:
-	            throw new ClientException(
-	                    "Booking is already cancelled");
-
-	        case COMPLETE:
-	            throw new ClientException(
-	                    "Completed bookings cannot be cancelled");
-
-	        case IN_TRANSACT:
-	            throw new ClientException(
-	                    "Booking already in transit cannot be cancelled");
-
-	        default:
-	            break;
-	    }
-	}
-	
-	private void processPayment(
-	        PersonClient user,
-	        Booking booking,
-	        PaymentDAO payment) {
-
-	    if (PaymentMethod.WALLET.equals(payment.getPaymentType())) {
-
-	        BigDecimal balance =
-	                user.getWalletBalance();
-
-	        BigDecimal bookingPrice =
-	                booking.getPrice();
-
-	        if (balance.compareTo(bookingPrice) < 0) {
-	            throw new ClientException("Insufficient funds");
-	        }
-
-	        user.setWalletBalance(
-	                balance.subtract(bookingPrice)
-	        );
-	    }
-	}
-	
-	private void validateBookingOwnership(
-	        Booking booking,
-	        PersonClient user) {
-
-	    if (!booking.getUserId().equals(user.getEmail())) {
-	        throw new ClientException(
-	                "You are not allowed to pay for this booking");
-	    }
-	}
-	
-	
-	private void validateBookingPaymentAllowed(Booking booking) {
-
-	    switch (booking.getStatus()) {
-
-	        case CANCELLED:
-	            throw new ClientException(
-	                    "Cancelled booking cannot be paid");
-
-	        case COMPLETE:
-	            throw new ClientException(
-	                    "Completed booking cannot be paid");
-
-	        case AWAITING_DRIVER:
-	            throw new ClientException(
-	                    "Booking already paid");
-
-	        default:
-	            break;
-	    }
+	public List<Booking> getBookingsByUserId(String userId){
+		return bookingRepository.findAllByUserId(userId);
 	}
 
+	private DropDetails buildDropDetails(BookingDTO dto) {
+
+		return DropDetails.builder().
+				dropOffNames(dto.dropOffName()).
+				dropOffContact(dto.dropOffPhone()).
+				pickUpNames(dto.pickUpName()).
+				pickUpContact(dto.pickUpCellphone()).build();
+	}
 }

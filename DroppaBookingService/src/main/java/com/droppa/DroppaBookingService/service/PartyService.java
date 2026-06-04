@@ -5,14 +5,13 @@ import java.time.LocalDate;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.Random;
-import java.util.logging.Logger;
 
 
+import com.droppa.DroppaBookingService.exceptions.PromoCodeException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.droppa.DroppaBookingService.dto.EmailDetails;
-import com.droppa.DroppaBookingService.exceptions.ClientException;
 import com.droppa.DroppaBookingService.dto.PromoCodeDTO;
 import com.droppa.DroppaBookingService.entity.PromoCode;
 import com.droppa.DroppaBookingService.repository.PromoCodeRepository;
@@ -29,23 +28,7 @@ public class PartyService {
 	private static final SecureRandom secureRandom = new SecureRandom();
 	private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 	private final EmailServiceImp emailServiceImp;
-
-//	public int generateOTP(String email) {
-//		final int max = 99999;
-//		final int min = 10000;
-//		Random random = new Random();
-//		int otp = random.nextInt((max - min) + 1) + min;
-//
-//		String message = "Welcome to DroppClone.\nUse the code below to activate your account.\nCode : " + otp;
-//
-//		EmailDetails mailDetails = EmailDetails.builder().recipient(email).msgBody(message).subject("Promo Code")
-//				.build();
-//
-//		//emailServiceImp.sendSimpleMail(mailDetails);
-//
-//		logger.info("==================== OTP " + otp + " sent to email " + email);
-//		return otp;
-//	}
+	
 	
 	public String generateOTP(String email) {
 
@@ -83,17 +66,8 @@ public class PartyService {
 		return sb.toString();
 	}
 
-	public String generateToken() {
-		String token;
-		byte[] randomBytes = new byte[97];
-		secureRandom.nextBytes(randomBytes);
-		token = base64Encoder.encodeToString(randomBytes);
-		System.out.println("========================= : : " + token);
-		return token;
 
-	}
-
-	public String generateTracknumber() {
+	public String generateTrackNumber() {
 		final int max = 999999;
 		final int min = 100009;
 		Random random = new Random();
@@ -116,16 +90,16 @@ public class PartyService {
 		if (promoOptional.isPresent()) {
 			// Days.daysBetween(start, end).getDays();
 			if (LocalDate.now().isAfter(promoOptional.get().getExpiration()))
-				throw new ClientException("This promo code has EXPIRED");
+				throw new PromoCodeException("This promo code has EXPIRED");
 			if (promoOptional.get().getNumberOfTimesUsed() < promoOptional.get().getPromoCount()) {
 				discountedPrice = promoData.bookingPrice - promoOptional.get().getDiscountPrice();
 				promoOptional.get().setNumberOfTimesUsed(promoOptional.get().getNumberOfTimesUsed() + 1);
 				return discountedPrice;
 			} else {
-				throw new ClientException("This Promo Code has reached maximum use");
+				throw new PromoCodeException("This Promo Code has reached maximum use");
 			}
 		} else {
-			throw new ClientException("Invalid promo code");
+			throw new PromoCodeException("Invalid promo code");
 		}
 	}
 }

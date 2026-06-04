@@ -72,8 +72,11 @@ public class PartyService {
 	}
 
 	public String randomChars(int length) {
+		if (length <= 0) {
+			throw new IllegalArgumentException("length must be greater than zero");
+		}
+
 		String candidateChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-		emailServiceImp.sendSimpleMail(null);
 		StringBuilder sb = new StringBuilder();
 		Random random = new Random();
 		for (int i = 0; i < length; i++) {

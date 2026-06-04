@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,28 +39,32 @@ public class BookingController {
 	private final BookingService bookingService;
 	private final PartyService partyService;
 
-	// @Secured
-	@PostMapping("/book")
-	public ResponseEntity<Booking> createBooking(@RequestBody BookingDTO bookingDto) {
-		Booking book = bookingService.createBooking(bookingDto);
-		return new ResponseEntity<Booking>(book, HttpStatus.OK);
+//	// @Secured
+//	@PostMapping("/book")
+//	public ResponseEntity<Booking> createBooking(@RequestBody BookingDTO bookingDto) {
+//		Booking book = bookingService.createBooking(bookingDto);
+//		return new ResponseEntity<Booking>(book, HttpStatus.OK);
+//	}
+	
+	@PostMapping("/create-booking")
+	public Booking createBooking(
+	        @RequestBody BookingDTO dto,
+	        @RequestHeader("X-User-Email") String email) {
+
+	    return bookingService.createBooking(dto, email);
 	}
 
-	@GetMapping("/bookingbystatus/{status}")
-	public List<Booking> getBookingByStatus(@PathVariable("status") BookingStatus status) {
-		return bookingService.getBookingsByStatus(status);
-	}
+//	@GetMapping("/bookingbystatus/{status}")
+//	public List<Booking> getBookingByStatus(@PathVariable("status") BookingStatus status) {
+//		return bookingService.getBookingsByStatus(status);
+//	}
+//
+//	@GetMapping("/bookingbystatusforuser/{status}/{userid}")
+//	public List<Booking> getBookingsByStatusForUser(@PathVariable("status") BookingStatus status,
+//			@PathVariable("userid") String userid) {
+//		return bookingService.getBookingsByStatusForUser(status, userid);
+//	}
 
-	@GetMapping("/bookingbystatusforuser/{status}/{userid}")
-	public List<Booking> getBookingsByStatusForUser(@PathVariable("status") BookingStatus status,
-			@PathVariable("userid") String userid) {
-		return bookingService.getBookingsByStatusForUser(status, userid);
-	}
-
-	@GetMapping("/getAllBokings")
-	public List<Booking> getAllBookings() {
-		return bookingService.getAllBookings();
-	}
 
 	@GetMapping("/bookingById/{id}")
 	public ResponseEntity<Booking> getBookingById(@PathVariable("id") String id) {
@@ -69,12 +74,12 @@ public class BookingController {
 
 	@GetMapping("/bookingByDriverId/{id}")
 	public List<Booking> getBookingByDriverId(@PathVariable("id") String id) {
-		return bookingService.getBookingsByDriverId(id);
+		return bookingService.getBookingsForAuthenticatedDriver(id);
 	}
 
 	@GetMapping("/bookingByUserId/{id}")
 	public List<Booking> getBookingByUserId(@PathVariable("id") String id) {
-		return bookingService.getBookingByUserId(id);
+		return bookingService.getBookingsByUserId(id);
 	}
 
 	@PutMapping("/cancelBooking/{bookingId}")
@@ -90,10 +95,10 @@ public class BookingController {
 		return new ResponseEntity<Booking>(cBooking, HttpStatus.OK);
 	}
 
-	@PostMapping("/getprice")
-	public ResponseEntity<Double> requestPrice(@RequestBody CoordinatesDTO coordinates) {
-		return new ResponseEntity<Double>(bookingService.requestPrice(coordinates), HttpStatus.OK);
-	}
+//	@PostMapping("/getprice")
+//	public ResponseEntity<Double> requestPrice(@RequestBody CoordinatesDTO coordinates) {
+//		return new ResponseEntity<Double>(bookingService.requestPrice(coordinates), HttpStatus.OK);
+//	}
 
 	@PostMapping("/applypromocode")
 	public ResponseEntity<Double> applyPromCode(@RequestBody PromoCodeDTO promocodeDto) {

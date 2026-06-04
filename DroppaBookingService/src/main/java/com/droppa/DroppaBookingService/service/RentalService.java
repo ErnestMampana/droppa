@@ -3,17 +3,13 @@
  */
 package com.droppa.DroppaBookingService.service;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+import com.droppa.DroppaBookingService.exceptions.BookingException;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import com.droppa.DroppaBookingService.dto.PaymentDAO;
-import com.droppa.DroppaBookingService.entity.Booking;
-import com.droppa.DroppaBookingService.enums.BookingStatus;
-import com.droppa.DroppaBookingService.exceptions.ClientException;
 import com.droppa.DroppaBookingService.interfaces.UserServiceClient;
 import com.droppa.DroppaBookingService.dto.PersonClient;
 import com.droppa.DroppaBookingService.dto.RentalDTO;
@@ -23,7 +19,6 @@ import com.droppa.DroppaBookingService.repository.RentalRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ernest Mampana
@@ -44,7 +39,7 @@ public class RentalService {
 
 	public Rental createRental(RentalDTO rentalData) {
 
-		log.info("==================================== Requesting to create a rental booking");
+		log.info("Requesting to create a rental booking");
 		String rentalId;
 
 		PersonClient user = userServiceClient.getUserByEmail(rentalData.getUserId());
@@ -84,7 +79,7 @@ public class RentalService {
 		if (rentalOptional.isPresent()) {
 			return rentalOptional.get();
 		} else {
-			throw new ClientException("Rental booking not found");
+			throw new BookingException("Rental booking not found");
 		}
 	}
 

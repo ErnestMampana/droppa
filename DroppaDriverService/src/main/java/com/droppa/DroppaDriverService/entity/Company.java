@@ -4,33 +4,50 @@
 package com.droppa.DroppaDriverService.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
-
 
 /**
  * @author Ernest Mampana
  *
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@Table(name = "company")
 public class Company {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
+
+	@Column(nullable = false, unique = true)
 	private String companyId;
+
+	@Column(nullable = false)
 	private String companyName;
-//	@OneToOne
+
+	@Column(nullable = false)
 	private int ownerId;
+
+	@Column(nullable = false)
 	private String location;
-//	@ElementCollection
-//	private List<Vehicle> vehicles;
+
+	public static Company create(String companyId, String companyName, int ownerId, String location) {
+		Company company = new Company();
+		company.companyId = requireText(companyId, "companyId");
+		company.companyName = requireText(companyName, "companyName");
+		company.ownerId = ownerId;
+		company.location = requireText(location, "location");
+		return company;
+	}
+
+	private static String requireText(String value, String fieldName) {
+		if (value == null || value.isBlank()) {
+			throw new IllegalArgumentException(fieldName + " is required");
+		}
+
+		return value.trim();
+	}
 
 }

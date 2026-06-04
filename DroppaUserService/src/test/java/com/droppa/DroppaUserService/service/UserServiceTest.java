@@ -3,7 +3,7 @@ package com.droppa.DroppaUserService.service;
 import com.droppa.DroppaUserService.dto.UserResponseDTO;
 import com.droppa.DroppaUserService.entity.Person;
 import com.droppa.DroppaUserService.entity.UserAccount;
-import com.droppa.DroppaUserService.exception.ClientException;
+import com.droppa.DroppaUserService.exception.UserNotFoundException;
 import com.droppa.DroppaUserService.repository.UserAccountRepository;
 
 
@@ -51,15 +51,17 @@ class UserServiceTest {
     @Test
     @DisplayName("Should throw exception when user not found")
     void shouldThrowExceptionWhenUserNotFound() {
+    	
+    	String email = "missing@gmail.com";
 
         when(userAccountRepository.findByEmail(anyString()))
                 .thenReturn(Optional.empty());
 
-        ClientException exception =
-                assertThrows(ClientException.class,
-                        () -> userService.getUserByEmail("missing@gmail.com"));
+        UserNotFoundException exception =
+                assertThrows(UserNotFoundException.class,
+                        () -> userService.getUserByEmail(email));
 
-        assertEquals("Account not found", exception.getMessage());
+        assertEquals("Account not found for email: " + email, exception.getMessage());
         verify(userAccountRepository).findByEmail("missing@gmail.com");
     }
 
@@ -85,7 +87,7 @@ class UserServiceTest {
         UserResponseDTO response =
                 userService.buildUserResponse(user, token);
 
-        assertEquals("Ernest", response.getUserName());
+        assertEquals("Ernest", response.getUsername());
         assertEquals("Mohlala", response.getSurname());
         assertEquals("0723568069", response.getCellphone());
         assertEquals("jwt-token", response.getToken());

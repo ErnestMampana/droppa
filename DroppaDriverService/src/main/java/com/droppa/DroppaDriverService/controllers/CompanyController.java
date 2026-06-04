@@ -6,6 +6,7 @@ package com.droppa.DroppaDriverService.controllers;
 import java.util.List;
 
 import com.droppa.DroppaDriverService.dto.CompanyDTO;
+import com.droppa.DroppaDriverService.dto.CompanyResponse;
 import com.droppa.DroppaDriverService.entity.Company;
 import com.droppa.DroppaDriverService.services.CompanyService;
 import lombok.RequiredArgsConstructor;
@@ -33,20 +34,23 @@ public class CompanyController {
 	private final CompanyService companyService;
 	
 	@PostMapping("/createcompany")
-	public ResponseEntity<Company> createCompany(@RequestBody CompanyDTO companyDTO) {
+	public ResponseEntity<CompanyResponse> createCompany(@RequestBody CompanyDTO companyDTO) {
 		Company company = companyService.createCompany(companyDTO);
-		return new ResponseEntity<Company>(company,HttpStatus.OK);
+		return new ResponseEntity<>(CompanyResponse.from(company), HttpStatus.CREATED);
 	}
 	
 	@GetMapping("/getcompany/{id}")
-	public ResponseEntity<Company> getCompanyById(@PathVariable("id") String id) {
+	public ResponseEntity<CompanyResponse> getCompanyById(@PathVariable("id") String id) {
 		Company company = companyService.getCompanyByCompanyId(id);
-		return new ResponseEntity<Company>(company,HttpStatus.OK);
+		return ResponseEntity.ok(CompanyResponse.from(company));
 	}
 	
 	@GetMapping("/viewallcompanies")
-	public List<Company> viewAllCompanies() {
-		return companyService.viewAllCompanies();
+	public List<CompanyResponse> viewAllCompanies() {
+		return companyService.viewAllCompanies()
+				.stream()
+				.map(CompanyResponse::from)
+				.toList();
 	}
 
 }

@@ -50,6 +50,11 @@ public class AuthenticationController {
 	public ResponseEntity<UserResponseDTO> resetPassword(@RequestBody ResetPasswordRequest request) {
     	return ResponseEntity.ok(service.resetPassword(request));
 	}
+
+	@PutMapping("/refresh-otp")
+	public ResponseEntity<String> refreshOtp(@RequestBody PasswordResetRequest request) {
+		return ResponseEntity.ok(service.refreshOtp(request.getEmail()));
+	}
     
     
 

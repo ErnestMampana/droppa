@@ -3,6 +3,7 @@ package com.droppa.DroppaUserService.controller;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.droppa.DroppaUserService.dto.UserAccountStatusResponse;
 import com.droppa.DroppaUserService.dto.UserResponseDTO;
 import com.droppa.DroppaUserService.entity.Person;
 import com.droppa.DroppaUserService.entity.UserAccount;
@@ -31,6 +32,11 @@ public class UserController {
 	@GetMapping("/getuserbyemail/{email}")
 	public ResponseEntity<Person> getUserByEmail(@PathVariable("email") String email) {
 		return new ResponseEntity<Person>(userService.getUserByEmail(email).getPerson(), HttpStatus.OK);
+	}
+
+	@GetMapping("/accounts/{email}")
+	public ResponseEntity<UserAccountStatusResponse> getUserAccountByEmail(@PathVariable("email") String email) {
+		return ResponseEntity.ok(UserAccountStatusResponse.from(userService.getUserByEmail(email)));
 	}
 
 

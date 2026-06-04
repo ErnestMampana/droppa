@@ -2,7 +2,7 @@ package com.droppa.DroppaUserService.service;
 
 import java.util.List;
 import com.droppa.DroppaUserService.repository.UserAccountRepository;
-import com.droppa.DroppaUserService.exception.ClientException;
+import com.droppa.DroppaUserService.exception.UserNotFoundException;
 import com.droppa.DroppaUserService.dto.UserResponseDTO;
 import com.droppa.DroppaUserService.entity.UserAccount;
 import org.springframework.stereotype.Service;
@@ -23,13 +23,13 @@ public class UserService {
 
 	public UserAccount getUserByEmail(String email) {
 		return userAccountRepository.findByEmail(email).
-				orElseThrow(() -> new ClientException("Account not found"));
+				orElseThrow(() -> new UserNotFoundException(email));
 	}
   
 
 	public UserResponseDTO buildUserResponse(UserAccount user,String token) {
 		return UserResponseDTO.builder().cellphone(user.getPerson().getCellphone())
-				.surname(user.getPerson().getSurname()).userName(user.getPerson().getUserName())
+				.surname(user.getPerson().getSurname()).username(user.getPerson().getUserName())
 				.token(token).walletBalance(user.getPerson().getWalletBalance())
 				.email(user.getEmail()).build();
 	}

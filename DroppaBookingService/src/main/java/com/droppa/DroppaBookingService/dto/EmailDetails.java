@@ -12,14 +12,11 @@ import lombok.NoArgsConstructor;
  * @author Ernest Mampana
  *
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-public class EmailDetails {
+public record EmailDetails (
 
-	private String recipient;
-    private String msgBody;
-    private String subject;
-    private String attachment;
-}
+	 String recipient,
+     String msgBody,
+     String subject,
+     String attachment
+){}

@@ -19,11 +19,11 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
 
 	Optional<List<Booking>> findAllByStatus(BookingStatus status);
 	
-	Optional<List<Booking>> findAllByAssinedDriver(String status);
+	List<Booking> findAllByAssinedDriver(String driverId);
 
-	Optional<List<Booking>> findAllByStatusAndUserId(BookingStatus status, String userId);
+	List<Booking> findAllByStatusAndUserId(BookingStatus status, String userId);
 	
-	Optional<List<Booking>> findAllByUserId(String status);
+	List<Booking> findAllByUserId(String status);
 	
 	Optional<Booking> deleteByBookingId(String bookingId); 
 }

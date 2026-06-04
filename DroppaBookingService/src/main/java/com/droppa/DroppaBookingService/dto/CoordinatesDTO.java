@@ -12,11 +12,8 @@ import lombok.NoArgsConstructor;
  * @author Ernest Mampana
  *
  */
-@Data
+
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class CoordinatesDTO {
-	private String pickupCoordinates;
-	private String dropOffCoordinates;
+public record CoordinatesDTO(String pickupCoordinates, String dropOffCoordinates) {
+
 }

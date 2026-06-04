@@ -41,9 +41,9 @@ public class EmailServiceImp implements EmailService {
 
 			// Setting up necessary details
 			mailMessage.setFrom(sender);
-			mailMessage.setTo(details.getRecipient());
-			mailMessage.setText(details.getMsgBody());
-			mailMessage.setSubject(details.getSubject());
+			mailMessage.setTo(details.recipient());
+			mailMessage.setText(details.msgBody());
+			mailMessage.setSubject(details.subject());
 
 			// Sending the mail
 			javaMailSender.send(mailMessage);
@@ -68,12 +68,12 @@ public class EmailServiceImp implements EmailService {
 			// be send
 			mimeMessageHelper = new MimeMessageHelper(mimeMessage, true);
 			mimeMessageHelper.setFrom(sender);
-			mimeMessageHelper.setTo(details.getRecipient());
-			mimeMessageHelper.setText(details.getMsgBody());
-			mimeMessageHelper.setSubject(details.getSubject());
+			mimeMessageHelper.setTo(details.recipient());
+			mimeMessageHelper.setText(details.msgBody());
+			mimeMessageHelper.setSubject(details.subject());
 
 			// Adding the attachment
-			FileSystemResource file = new FileSystemResource(new File(details.getAttachment()));
+			FileSystemResource file = new FileSystemResource(new File(details.attachment()));
 
 			mimeMessageHelper.addAttachment(file.getFilename(), file);
 

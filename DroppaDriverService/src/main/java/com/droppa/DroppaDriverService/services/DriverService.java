@@ -1,75 +1,112 @@
 package com.droppa.DroppaDriverService.services;
 
 import java.util.List;
-import java.util.Optional;
 
-import com.droppa.DroppaDriverService.enums.AccountStatus;
 import com.droppa.DroppaDriverService.exception.ClientException;
 import com.droppa.DroppaDriverService.dto.DriverDTO;
+import com.droppa.DroppaDriverService.dto.PersonClient;
+import com.droppa.DroppaDriverService.dto.UserAccountClient;
 import com.droppa.DroppaDriverService.entity.DriverAccount;
 import com.droppa.DroppaDriverService.entity.Vehicle;
 import com.droppa.DroppaDriverService.entity.VehicleDriver;
+import com.droppa.DroppaDriverService.interfaces.UserServiceClient;
 import com.droppa.DroppaDriverService.repositories.DriverAccountRepository;
-import com.droppa.DroppaDriverService.repositories.VehicleDriverRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
+@Slf4j
 public class DriverService {
 
-	private DriverAccountRepository driverAccRepo;
+	private final DriverAccountRepository driverAccountRepository;
+	private final VehicleService vehicleService;
+	private final UserServiceClient userServiceClient;
 
-	private DriverAccountRepository driverAccountRepository;
-
-	private VehicleDriverRepository vehicleDriverRepository;
-
-	private VehicleService vehicleService;
-
+	@Transactional(readOnly = true)
 	public List<DriverAccount> getAllDrivers() {
-		return driverAccRepo.findAll();
+		return driverAccountRepository.findAll();
 	}
 
-	public DriverAccount createDriverAccount(DriverDTO driverDto) {
+	public DriverAccount createDriverAccount(DriverDTO driverDto, String driverEmail) {
+		log.debug("Creating new driver");
+		String email = requireEmail(driverEmail);
+		UserAccountClient userAccount = userServiceClient.getUserAccountByEmail(email);
 
-		Optional<DriverAccount> driverOptional = driverAccRepo.findByEmail(driverDto.getEmail());
+		log.debug("Creating driver account for user account");
+		if (!userAccount.isActiveAndConfirmed()) {
+			throw new ClientException("Only confirmed active users can register as drivers");
+		}
 
-		if (driverOptional.isPresent())
-			throw new ClientException("Driver with Email '" + driverOptional.get().getEmail() + "' already exist");
-
-		var driver = VehicleDriver.builder()
-				.email(driverDto.getEmail())
-				.name(driverDto.getName())
-				.surname(driverDto.getSurname())
-				.celphone(driverDto.getCellphone())
-				.driverLicence(null).build();
-
+		if (driverAccountRepository.existsByEmail(email)) {
+			throw new ClientException("Driver with Email '" + email + "' already exist");
+		}
 
 		Vehicle vehicleData = vehicleService.getVehicleByRegistration(driverDto.getRegistration());
+		PersonClient person = requirePerson(userServiceClient.getUserByEmail(email));
+		VehicleDriver driver = VehicleDriver.create(
+				email,
+				requireText(person.getUserName(), "userName"),
+				requireText(person.getSurname(), "surname"),
+				requireCellphone(person.getCellphone())
+		);
 
-		var driverAcc = DriverAccount.builder()
-				.email(driverDto.getEmail())
-				.password(driverDto.getPassword())
-				.isConfirmed(false)
-				.vehicle(vehicleData)
-				.driver(driver)
-				.status(AccountStatus.AWAITING_CONFIRMATION).build();
+		DriverAccount driverAccount = DriverAccount.register(
+				email,
+				vehicleData,
+				driver
+		);
 
-		vehicleDriverRepository.save(driver);
-		driverAccountRepository.save(driverAcc);
-
-		return driverAcc;
+		return driverAccountRepository.save(driverAccount);
 	}
 
+	@Transactional(readOnly = true)
 	public DriverAccount getDriverByEmail(String email) {
-		Optional<DriverAccount> driverAccountOptional = driverAccountRepository.findByEmail(email);
+		return driverAccountRepository.findByEmail(email)
+				.orElseThrow(() -> new ClientException("Driver not found"));
+	}
 
-		if (driverAccountOptional.isPresent()) {
-			return driverAccountOptional.get();
-		} else {
-			throw new ClientException("Driver not found");
+	private String requireEmail(String email) {
+		if (email == null || email.isBlank()) {
+			throw new ClientException("Authenticated driver email is required");
+		}
+
+		return email.trim();
+	}
+
+	private PersonClient requirePerson(PersonClient person) {
+		if (person == null) {
+			throw new ClientException("User profile not found");
+		}
+
+		return person;
+	}
+
+	private String requireText(String value, String fieldName) {
+		if (value == null || value.isBlank()) {
+			throw new ClientException("User profile " + fieldName + " is required");
+		}
+
+		return value.trim();
+	}
+
+	private long requireCellphone(String cellphone) {
+		String value = requireText(cellphone, "cellphone")
+				.replace(" ", "")
+				.replace("-", "");
+
+		if (value.startsWith("+")) {
+			value = value.substring(1);
+		}
+
+		try {
+			return Long.parseLong(value);
+		} catch (NumberFormatException e) {
+			throw new ClientException("User profile cellphone must be numeric");
 		}
 	}
 

@@ -6,6 +6,7 @@ package com.droppa.DroppaDriverService.controllers;
 import java.util.List;
 
 import com.droppa.DroppaDriverService.dto.VehicleDTO;
+import com.droppa.DroppaDriverService.dto.VehicleResponse;
 import com.droppa.DroppaDriverService.entity.Vehicle;
 import com.droppa.DroppaDriverService.services.VehicleService;
 import lombok.RequiredArgsConstructor;
@@ -32,20 +33,22 @@ public class VehicleController {
 	private final VehicleService vehicleService;
 
 	@PostMapping("/registervehicle")
-	public ResponseEntity<Vehicle> registerVegicle(@RequestBody VehicleDTO vehicleDto) {
+	public ResponseEntity<VehicleResponse> registerVegicle(@RequestBody VehicleDTO vehicleDto) {
 		Vehicle vehicle =  vehicleService.registerVehicle(vehicleDto);
-		return new ResponseEntity<Vehicle>(vehicle,HttpStatus.OK);
+		return new ResponseEntity<>(VehicleResponse.from(vehicle), HttpStatus.CREATED);
 	}
 	
 	@GetMapping("/viewallvehicles")
-	public List<Vehicle> viewAllVehicles() {
-		List<Vehicle> vehicles = vehicleService.getAllVehicles();
-		return vehicles;
+	public List<VehicleResponse> viewAllVehicles() {
+		return vehicleService.getAllVehicles()
+				.stream()
+				.map(VehicleResponse::from)
+				.toList();
 	}
 	
 	@GetMapping("/getvehicle/{registration}")
-	public ResponseEntity<Vehicle> getVehicleByRegistration(@PathVariable("registration") String registration){
+	public ResponseEntity<VehicleResponse> getVehicleByRegistration(@PathVariable("registration") String registration){
 		Vehicle vehicle = vehicleService.getVehicleByRegistration(registration);
-		return new ResponseEntity<Vehicle>(vehicle,HttpStatus.OK);
+		return ResponseEntity.ok(VehicleResponse.from(vehicle));
 	}
 }

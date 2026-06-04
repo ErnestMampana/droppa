@@ -16,7 +16,6 @@ import com.droppa.DroppaUserService.repository.PersonRepository;
 import com.droppa.DroppaUserService.repository.TokenRepository;
 import com.droppa.DroppaUserService.repository.UserAccountRepository;
 import com.droppa.DroppaUserService.security.SecurityUserDetails;
-import com.droppa.DroppaUserService.service.JwtService;
 import com.droppa.DroppaUserService.service.PartyService;
 import com.droppa.DroppaUserService.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -135,6 +134,14 @@ public class AuthenticationService {
 
 		return otp;
 	}
+
+	@Transactional
+	public String refreshOtp(String email) {
+		UserAccount userAccount = userService.getUserByEmail(email);
+		String otp = partyService.generateOTP(userAccount.getPerson().getCellphone());
+		userAccount.refreshOtp(otp);
+		return otp;
+	}
 	
 	
 	@Transactional
@@ -185,7 +192,7 @@ public class AuthenticationService {
 	}
 
 	private void revokeAllUserTokens(UserAccount user) {
-		var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
+		var validUserTokens = tokenRepository.findAllByUserIdAndExpiredFalseAndRevokedFalse(user.getId());
 		if (validUserTokens.isEmpty())
 			return;
 		validUserTokens.forEach(token -> {

@@ -17,8 +17,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import com.droppa.DroppaUserService.dto.LoadWalletRequest;
-import com.droppa.DroppaUserService.security.JwtAuthenticationFilter;
-import com.droppa.DroppaUserService.service.JwtService;
+//import com.droppa.DroppaUserService.security.JwtAuthenticationFilter;
 import com.droppa.DroppaUserService.service.WalletService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -27,10 +26,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class WalletServiceTest {
 	
 	@MockBean
-	private JwtService jwtService;
+	private com.droppa.DroppaUserService.service.JwtService jwtService;
 	
-	@MockBean
-	private JwtAuthenticationFilter authenticationFilter;
+//	@MockBean
+//	private JwtAuthenticationFilter authenticationFilter;
 	
 	@MockBean 
 	private WalletService service;
@@ -46,12 +45,13 @@ public class WalletServiceTest {
 	void shouldLoadWallet() throws Exception{
 		
 		LoadWalletRequest loadWalletRequest = new LoadWalletRequest();
-		loadWalletRequest.setUsername("ernest@gmail.com");
+	//	loadWalletRequest.setUsername("ernest@gmail.com");
+		String email = "ernest@gmail.com";
 		loadWalletRequest.setAmount(BigDecimal.valueOf(200));
 		
 		
 		
-		when(service.loadWallet(any(LoadWalletRequest.class))).thenReturn(BigDecimal.valueOf(200));
+		when(service.loadWallet(any(LoadWalletRequest.class),email)).thenReturn(BigDecimal.valueOf(200));
 		
 		 mockMvc.perform(put("/api/v1/wallet/loadwallet")
                  .contentType(MediaType.APPLICATION_JSON)

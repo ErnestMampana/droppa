@@ -11,7 +11,7 @@ public class UserResponseMother {
                 .email("ernest@gmail.com")
                 .token("jwt-token")
                 .cellphone("0723568069")
-                .userName("ernest")
+                .username("ernest")
                 .surname("Mohlala")
                 .walletBalance(BigDecimal.valueOf(200))
                 .build();

@@ -10,18 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DriverDTO {
-	
-	public String email;
-	
-	public String password;
-
-	public String name;
-
-	public String surname;
-
-	public long cellphone;
-
-	public String companyId;
 
 	public String registration;
 }

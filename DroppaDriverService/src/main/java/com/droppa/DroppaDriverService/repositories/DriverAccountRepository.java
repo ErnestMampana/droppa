@@ -15,4 +15,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
  */
 public interface DriverAccountRepository extends JpaRepository<DriverAccount, Integer> {
 	Optional<DriverAccount> findByEmail(String email);
+
+	boolean existsByEmail(String email);
 }

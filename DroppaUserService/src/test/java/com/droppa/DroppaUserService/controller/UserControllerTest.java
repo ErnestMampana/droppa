@@ -24,9 +24,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.droppa.DroppaUserService.entity.Person;
 import com.droppa.DroppaUserService.entity.UserAccount;
 import com.droppa.DroppaUserService.enums.Role;
-import com.droppa.DroppaUserService.security.JwtAuthenticationFilter;
-import com.droppa.DroppaUserService.service.JwtService;
+//import com.droppa.DroppaUserService.security.JwtAuthenticationFilter;
 import com.droppa.DroppaUserService.service.UserService;
+
 
 @WebMvcTest(controllers = UserController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -36,13 +36,13 @@ public class UserControllerTest {
     private MockMvc mockMvc;
 
 	@MockBean
-	private JwtService jwtService;
+	private com.droppa.DroppaUserService.service.JwtService jwtService;
 
     @MockBean
     private UserService userService;
     
-    @MockBean
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+//    @MockBean
+//    private JwtAuthenticationFilter jwtAuthenticationFilter;
 	
     @Test
     @DisplayName("Should get user by email")

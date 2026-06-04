@@ -9,7 +9,8 @@ public enum BookingStatus {
 	INVALID("Booking cancelled"),
 	AWAITING_PAYMENT("Awaiting payments"), 
 	CANCELLED("Cancelled"), 
-	RESERVED("Booking taken already");
+	RESERVED("Booking taken already"),
+	ACCEPTED("Booking accepted");
 	
 	private String description;
 

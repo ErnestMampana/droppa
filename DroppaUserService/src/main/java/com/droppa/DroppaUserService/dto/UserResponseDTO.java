@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 public class UserResponseDTO {
 
 	private String email;
-	private String userName;
+	private String username;
 	private String surname;
 	private String cellphone;
 	private BigDecimal walletBalance;

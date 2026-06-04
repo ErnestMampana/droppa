@@ -16,7 +16,7 @@ import com.droppa.DroppaUserService.dto.PasswordResetRequest;
 import com.droppa.DroppaUserService.dto.PersonDTO;
 import com.droppa.DroppaUserService.dto.ResetPasswordRequest;
 import com.droppa.DroppaUserService.dto.UserResponseDTO;
-import com.droppa.DroppaUserService.security.JwtAuthenticationFilter;
+//import com.droppa.DroppaUserService.security.JwtAuthenticationFilter;
 import com.droppa.DroppaUserService.service.AuthenticationService;
 import com.droppa.DroppaUserService.service.AuthenticationServiceTest;
 import com.droppa.DroppaUserService.service.JwtService;
@@ -52,8 +52,8 @@ class AuthenticationControllerTest {
     @MockBean
     private AuthenticationService service;
 
-    @MockBean
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+//    @MockBean
+//    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @MockBean
     private JwtService jwtService;
