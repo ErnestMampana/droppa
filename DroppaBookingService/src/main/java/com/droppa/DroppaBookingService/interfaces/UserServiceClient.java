@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.droppa.DroppaBookingService.dto.PersonClient;
 
-@FeignClient(name = "user-service", url = "http://localhost:8081")
+@FeignClient(name = "user-service", url = "${services.user.url}")
 public interface UserServiceClient {
 	
 	@GetMapping("/api/v1/user/getuserbyemail/{email}")

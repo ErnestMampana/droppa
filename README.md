@@ -18,3 +18,23 @@ Make use of post man or download the apk under droppa_clone repository. Once you
 You can open the screenshot file to view images of the swager ui. 
 -The system allow users to register. Users needs to use real email when registering because they'll have to confirm their account using the OTP that they got from their email.
 -once the user is registered and activated, they have options to book a vehicle,rent or use sky net.
+
+# Docker
+
+The Docker Compose stack starts MySQL, all three application services, and the API gateway. Only the gateway is published to the host; internal services and MySQL remain private to the Docker network.
+
+1. Create a local environment file and replace the development credentials:
+
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+
+2. Build and start the stack:
+
+   ```powershell
+   docker compose up --build
+   ```
+
+3. Open the aggregated Swagger UI at `http://localhost:8089/swagger-ui.html`.
+
+Stop the stack with `docker compose down`. To also remove the MySQL data volume, use `docker compose down --volumes`.

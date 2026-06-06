@@ -12,8 +12,8 @@
         </processorPath>
         <module name="DroppaUserService" />
         <module name="DroppaApiGateway" />
-        <module name="DroppaDriverService" />
         <module name="DroppaBookingService" />
+        <module name="DroppaDriverService" />
       </profile>
     </annotationProcessing>
   </component>

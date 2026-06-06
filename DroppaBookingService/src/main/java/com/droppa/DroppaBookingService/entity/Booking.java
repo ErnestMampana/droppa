@@ -9,6 +9,7 @@ import com.droppa.DroppaBookingService.dto.PersonClient;
 import com.droppa.DroppaBookingService.enums.BookingStatus;
 import com.droppa.DroppaBookingService.enums.PaymentMethod;
 
+import com.droppa.DroppaBookingService.exceptions.BookingAccessDeniedException;
 import com.droppa.DroppaBookingService.exceptions.BookingException;
 import jakarta.persistence.*;
 import lombok.*;
@@ -74,7 +75,6 @@ public class Booking {
             String vehicleType,
             String paymentType,
             DropDetails dropDetails,
-            boolean paid,
             String trackNumber) {
 
         return Booking.builder()
@@ -92,9 +92,7 @@ public class Booking {
                 .paymentType(paymentType)
                 .dropDetails(dropDetails)
                 .trackNumber(trackNumber)
-                .status(paid
-                        ? BookingStatus.AWAITING_DRIVER
-                        : BookingStatus.AWAITING_PAYMENT)
+                .status(BookingStatus.AWAITING_PAYMENT)
                 .build();
     }
 
@@ -115,6 +113,15 @@ public class Booking {
 
             default -> this.status = BookingStatus.CANCELLED;
         }
+    }
+
+    public void requireOwnedBy(String authenticatedUserEmail) {
+        validateOwnership(authenticatedUserEmail);
+    }
+
+    public boolean canBeViewedBy(String authenticatedEmail) {
+        return identitiesMatch(userId, authenticatedEmail)
+                || identitiesMatch(assinedDriver, authenticatedEmail);
     }
 
     public void assignDriver(String driverId) {
@@ -154,17 +161,6 @@ public class Booking {
 
         validatePaymentAllowed();
 
-        if (PaymentMethod.WALLET.equals(payment.getPaymentType())) {
-
-            if (user.getWalletBalance().compareTo(price) < 0) {
-                throw new BookingException("Insufficient funds");
-            }
-
-            user.setWalletBalance(
-                    user.getWalletBalance().subtract(price)
-            );
-        }
-
         this.paymentType = payment.getPaymentType();  //.name();
         this.promoCodeUsed = payment.getUsedPromo();
         this.status = BookingStatus.AWAITING_DRIVER;
@@ -172,10 +168,16 @@ public class Booking {
 
     private void validateOwnership(String userId) {
 
-        if (!this.userId.equals(userId)) {
-            throw new BookingException(
-                    "Booking does not belong to supplied user");
+        if (!identitiesMatch(this.userId, userId)) {
+            throw new BookingAccessDeniedException(
+                    "You cannot modify a booking belonging to another user");
         }
+    }
+
+    private boolean identitiesMatch(String firstIdentity, String secondIdentity) {
+        return firstIdentity != null
+                && secondIdentity != null
+                && firstIdentity.trim().equalsIgnoreCase(secondIdentity.trim());
     }
 
     private void validatePaymentAllowed() {

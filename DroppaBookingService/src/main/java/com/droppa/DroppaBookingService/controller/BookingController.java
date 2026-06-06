@@ -6,14 +6,13 @@ package com.droppa.DroppaBookingService.controller;
 import java.util.List;
 
 import com.droppa.DroppaBookingService.entity.Booking;
-import com.droppa.DroppaBookingService.enums.BookingStatus;
 import com.droppa.DroppaBookingService.service.BookingService;
 import com.droppa.DroppaBookingService.dto.BookingDTO;
-import com.droppa.DroppaBookingService.dto.CoordinatesDTO;
 import com.droppa.DroppaBookingService.dto.PaymentDAO;
 import com.droppa.DroppaBookingService.dto.PromoCodeDTO;
 import com.droppa.DroppaBookingService.service.PartyService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +23,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -48,7 +46,7 @@ public class BookingController {
 	
 	@PostMapping("/create-booking")
 	public Booking createBooking(
-	        @RequestBody BookingDTO dto,
+	        @Valid @RequestBody BookingDTO dto,
 	        @RequestHeader("X-User-Email") String email) {
 
 	    return bookingService.createBooking(dto, email);
@@ -67,31 +65,40 @@ public class BookingController {
 
 
 	@GetMapping("/bookingById/{id}")
-	public ResponseEntity<Booking> getBookingById(@PathVariable("id") String id) {
-		Booking booking = bookingService.getBookingById(id);
+	public ResponseEntity<Booking> getBookingById(
+			@PathVariable String id,
+			@RequestHeader("X-User-Email") String authenticatedEmail) {
+		Booking booking = bookingService.getBookingByIdForAuthenticatedUser(id, authenticatedEmail);
 		return new ResponseEntity<Booking>(booking, HttpStatus.OK);
 	}
 
 	@GetMapping("/bookingByDriverId/{id}")
-	public List<Booking> getBookingByDriverId(@PathVariable("id") String id) {
-		return bookingService.getBookingsForAuthenticatedDriver(id);
+	public List<Booking> getBookingByDriverId(
+			@PathVariable String id,
+			@RequestHeader("X-User-Email") String authenticatedEmail) {
+		return bookingService.getBookingsForAuthenticatedDriver(id, authenticatedEmail);
 	}
 
 	@GetMapping("/bookingByUserId/{id}")
-	public List<Booking> getBookingByUserId(@PathVariable("id") String id) {
-		return bookingService.getBookingsByUserId(id);
+	public List<Booking> getBookingByUserId(
+			@PathVariable String id,
+			@RequestHeader("X-User-Email") String authenticatedEmail) {
+		return bookingService.getBookingsByUserId(id, authenticatedEmail);
 	}
 
 	@PutMapping("/cancelBooking/{bookingId}")
-	public ResponseEntity<Booking> cancelBooking(@PathVariable("bookingId") String bookingId,
-			@RequestParam(required = true) String userId) {
-		Booking cBooking = bookingService.cancelBooking(bookingId, userId);
+	public ResponseEntity<Booking> cancelBooking(
+			@PathVariable String bookingId,
+			@RequestHeader("X-User-Email") String authenticatedEmail) {
+		Booking cBooking = bookingService.cancelBooking(bookingId, authenticatedEmail);
 		return new ResponseEntity<Booking>(cBooking, HttpStatus.OK);
 	}
 
 	@PutMapping("/makePayment")
-	public ResponseEntity<Booking> makePayments(@RequestBody PaymentDAO payment) {
-		Booking cBooking = bookingService.makePayment(payment);
+	public ResponseEntity<Booking> makePayments(
+			@Valid @RequestBody PaymentDAO payment,
+			@RequestHeader("X-User-Email") String authenticatedEmail) {
+		Booking cBooking = bookingService.makePayment(payment, authenticatedEmail);
 		return new ResponseEntity<Booking>(cBooking, HttpStatus.OK);
 	}
 

@@ -1,0 +1,106 @@
+name: droppa
+
+x-service-environment: &service-environment
+  SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-droppa}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+  SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-droppa}
+  SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-droppa-local-password}
+  JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
+  SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-smtp.gmail.com}
+  SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
+  SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
+  SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
+  SPRING_MAIL_SMTP_AUTH: ${SPRING_MAIL_SMTP_AUTH:-true}
+  SPRING_MAIL_STARTTLS_ENABLE: ${SPRING_MAIL_STARTTLS_ENABLE:-true}
+  JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--XX:MaxRAMPercentage=75.0}
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-droppa}
+      MYSQL_USER: ${MYSQL_USER:-droppa}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-droppa-local-password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-droppa-local-root-password}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p\"$${MYSQL_ROOT_PASSWORD}\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  user-service:
+    build:
+      context: ./DroppaUserService
+    environment:
+      <<: *service-environment
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-that-must-be-changed-before-production}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    expose:
+      - "8081"
+    restart: unless-stopped
+
+  booking-service:
+    build:
+      context: ./DroppaBookingService
+    environment:
+      <<: *service-environment
+      USER_SERVICE_URL: http://user-service:8081
+      BOOKING_PRICE_MINI_VAN: ${BOOKING_PRICE_MINI_VAN:-350.00}
+      BOOKING_PRICE_ONE_TON: ${BOOKING_PRICE_ONE_TON:-500.00}
+      BOOKING_PRICE_ONE_POINT_FIVE_TON: ${BOOKING_PRICE_ONE_POINT_FIVE_TON:-650.00}
+      BOOKING_PRICE_FOUR_TON: ${BOOKING_PRICE_FOUR_TON:-1200.00}
+      BOOKING_PRICE_EIGHT_TON: ${BOOKING_PRICE_EIGHT_TON:-2000.00}
+      BOOKING_PRICE_ADDITIONAL_LOAD: ${BOOKING_PRICE_ADDITIONAL_LOAD:-100.00}
+      BOOKING_PRICE_LABOUR: ${BOOKING_PRICE_LABOUR:-150.00}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+    expose:
+      - "8082"
+    restart: unless-stopped
+
+  driver-service:
+    build:
+      context: ./DroppaDriverService
+    environment:
+      <<: *service-environment
+      USER_SERVICE_URL: http://user-service:8081
+    depends_on:
+      mysql:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+    expose:
+      - "8083"
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: ./DroppaApiGateway
+    environment:
+      SERVER_PORT: 8089
+      USER_SERVICE_URL: http://user-service:8081
+      BOOKING_SERVICE_URL: http://booking-service:8082
+      DRIVER_SERVICE_URL: http://driver-service:8083
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-that-must-be-changed-before-production}
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--XX:MaxRAMPercentage=75.0}
+    depends_on:
+      user-service:
+        condition: service_started
+      booking-service:
+        condition: service_started
+      driver-service:
+        condition: service_started
+    ports:
+      - "${GATEWAY_PORT:-8089}:8089"
+    restart: unless-stopped
+
+volumes:
+  mysql-data:

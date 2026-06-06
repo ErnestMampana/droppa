@@ -10,6 +10,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.function.Function;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 
@@ -17,7 +18,11 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class JwtService {
 
-  private static final String SECRET_KEY = "58703272357538782F413F4428472B4B6250655368566D5971337436763979244226452948404D635166546A576E5A7234753778217A25432A462D4A614E6452";
+  private final String secretKey;
+
+  public JwtService(@Value("${security.jwt.secret}") String secretKey) {
+    this.secretKey = secretKey;
+  }
 
   public String extractUsername(String token) {
     return extractClaim(token, Claims::getSubject);
@@ -62,7 +67,7 @@ public class JwtService {
   }
 
   private Key getSignInKey() {
-	    byte[] keyBytes = SECRET_KEY.getBytes(StandardCharsets.UTF_8);
+	    byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
 	    return Keys.hmacShaKeyFor(keyBytes);
 	}
 }

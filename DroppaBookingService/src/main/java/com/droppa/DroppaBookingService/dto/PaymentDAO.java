@@ -3,8 +3,7 @@
  */
 package com.droppa.DroppaBookingService.dto;
 
-import java.math.BigDecimal;
-
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,10 +19,10 @@ import lombok.NoArgsConstructor;
 @Builder
 public class PaymentDAO {
 
-	private String userId;
+	@NotBlank
 	private String bookingId;
+	@NotBlank
 	private String paymentType;
 	private String usedPromo;
-	private BigDecimal bookingPrice;
 
 }
