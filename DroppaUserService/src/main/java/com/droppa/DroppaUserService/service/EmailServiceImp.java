@@ -18,6 +18,7 @@ import com.droppa.DroppaUserService.interfaces.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Ernest Mampana
@@ -25,6 +26,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmailServiceImp implements EmailService {
 	private final JavaMailSender javaMailSender;
 
@@ -33,6 +35,11 @@ public class EmailServiceImp implements EmailService {
 
 	@Override
 	public String sendSimpleMail(EmailDetails details) {
+		if (sender == null || sender.isBlank()) {
+			log.warn("Mail skipped because spring.mail.username is not configured");
+			return "Mail skipped: spring.mail.username is not configured";
+		}
+
 		// Try block to check for exceptions
 		try {
 
@@ -52,12 +59,18 @@ public class EmailServiceImp implements EmailService {
 
 		// Catch block to handle the exceptions
 		catch (Exception e) {
-			return "Error while Sending Mail";
+			log.warn("Failed to send mail to {}", details == null ? null : details.getRecipient(), e);
+			return "Error while Sending Mail: " + e.getMessage();
 		}
 	}
 
 	@Override
 	public String sendMailWithAttachment(EmailDetails details) {
+		if (sender == null || sender.isBlank()) {
+			log.warn("Mail with attachment skipped because spring.mail.username is not configured");
+			return "Mail skipped: spring.mail.username is not configured";
+		}
+
 		// Creating a mime message
 		MimeMessage mimeMessage = javaMailSender.createMimeMessage();
 		MimeMessageHelper mimeMessageHelper;
@@ -86,7 +99,8 @@ public class EmailServiceImp implements EmailService {
 		catch (MessagingException e) {
 
 			// Display message when exception occurred
-			return "Error while sending mail!!!";
+			log.warn("Failed to send mail with attachment to {}", details == null ? null : details.getRecipient(), e);
+			return "Error while sending mail: " + e.getMessage();
 		}
 	}
 

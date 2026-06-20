@@ -1,6 +1,7 @@
 package com.droppa.DroppaDriverService.entity;
 
 import com.droppa.DroppaDriverService.enums.AccountStatus;
+import com.droppa.DroppaDriverService.enums.DriverAvailability;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -34,12 +35,16 @@ public class DriverAccount {
 	@Column(nullable = false)
 	private AccountStatus status;
 
+	@Enumerated(EnumType.STRING)
+	private DriverAvailability availabilityStatus = DriverAvailability.OFFLINE;
+
 	public static DriverAccount register(String email, Vehicle vehicle, VehicleDriver driver) {
 		DriverAccount account = new DriverAccount();
 		account.email = requireText(email, "email");
 		account.driver = Objects.requireNonNull(driver, "driver is required");
 		account.isConfirmed = false;
 		account.status = AccountStatus.AWAITING_CONFIRMATION;
+		account.availabilityStatus = DriverAvailability.OFFLINE;
 		account.assignVehicle(vehicle);
 		return account;
 	}
@@ -51,6 +56,7 @@ public class DriverAccount {
 
 		isConfirmed = true;
 		status = AccountStatus.ACTIVE;
+		availabilityStatus = DriverAvailability.OFFLINE;
 	}
 
 	public void suspend() {
@@ -59,6 +65,7 @@ public class DriverAccount {
 		}
 
 		status = AccountStatus.SUSPENDED;
+		availabilityStatus = DriverAvailability.OFFLINE;
 	}
 
 	public void reactivate() {
@@ -67,6 +74,38 @@ public class DriverAccount {
 		}
 
 		status = AccountStatus.ACTIVE;
+	}
+
+	public void goOnline() {
+		requireActiveConfirmed();
+		if (availabilityStatus == DriverAvailability.IN_TRANSIT) {
+			throw new IllegalStateException("Driver is currently in transit");
+		}
+		availabilityStatus = DriverAvailability.ONLINE;
+	}
+
+	public void goOffline() {
+		requireActiveConfirmed();
+		if (availabilityStatus == DriverAvailability.IN_TRANSIT) {
+			throw new IllegalStateException("Driver is currently in transit");
+		}
+		availabilityStatus = DriverAvailability.OFFLINE;
+	}
+
+	public void startTransit() {
+		requireActiveConfirmed();
+		availabilityStatus = DriverAvailability.IN_TRANSIT;
+	}
+
+	public void completeTransit() {
+		requireActiveConfirmed();
+		availabilityStatus = DriverAvailability.ONLINE;
+	}
+
+	public boolean isOnlineForOffers() {
+		return isConfirmed
+				&& status == AccountStatus.ACTIVE
+				&& availabilityStatus == DriverAvailability.ONLINE;
 	}
 
 	public void assignVehicle(Vehicle vehicle) {
@@ -91,5 +130,11 @@ public class DriverAccount {
 		}
 
 		return value.trim();
+	}
+
+	private void requireActiveConfirmed() {
+		if (!isConfirmed || status != AccountStatus.ACTIVE) {
+			throw new IllegalStateException("Driver account must be active and confirmed");
+		}
 	}
 }

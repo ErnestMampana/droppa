@@ -4,12 +4,14 @@ import com.droppa.DroppaDriverService.entity.DriverAccount;
 import com.droppa.DroppaDriverService.entity.Vehicle;
 import com.droppa.DroppaDriverService.entity.VehicleDriver;
 import com.droppa.DroppaDriverService.enums.AccountStatus;
+import com.droppa.DroppaDriverService.enums.DriverAvailability;
 
 public record DriverAccountResponse(
 		int id,
 		String email,
 		boolean confirmed,
 		AccountStatus status,
+		DriverAvailability availabilityStatus,
 		String vehicleRegistration,
 		String driverName,
 		String driverSurname,
@@ -24,6 +26,7 @@ public record DriverAccountResponse(
 				account.getEmail(),
 				account.isConfirmed(),
 				account.getStatus(),
+				account.getAvailabilityStatus(),
 				vehicle != null ? vehicle.getRegistration() : null,
 				driver != null ? driver.getName() : null,
 				driver != null ? driver.getSurname() : null,

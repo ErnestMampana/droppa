@@ -19,9 +19,15 @@ You can open the screenshot file to view images of the swager ui.
 -The system allow users to register. Users needs to use real email when registering because they'll have to confirm their account using the OTP that they got from their email.
 -once the user is registered and activated, they have options to book a vehicle,rent or use sky net.
 
-# Docker
+# Development profiles
 
-The Docker Compose stack starts MySQL, all three application services, and the API gateway. Only the gateway is published to the host; internal services and MySQL remain private to the Docker network.
+The project provides two Docker Compose profiles:
+
+- `dev`: runs MySQL, Kafka, and Zookeeper in Docker. Run the four Spring applications from IntelliJ.
+- `qa`: builds and runs the complete system in Docker.
+
+Stop the currently active profile before switching profiles. Compose does not
+automatically stop containers that belong only to the previous profile.
 
 1. Create a local environment file and replace the development credentials:
 
@@ -29,12 +35,53 @@ The Docker Compose stack starts MySQL, all three application services, and the A
    Copy-Item .env.example .env
    ```
 
-2. Build and start the stack:
+## Dev
 
-   ```powershell
-   docker compose up --build
-   ```
+Start the infrastructure:
 
-3. Open the aggregated Swagger UI at `http://localhost:8089/swagger-ui.html`.
+```powershell
+docker compose --profile dev up -d
+```
 
-Stop the stack with `docker compose down`. To also remove the MySQL data volume, use `docker compose down --volumes`.
+Run these main classes from IntelliJ:
+
+- `DroppaUserServiceApplication` on port `8081`
+- `DroppaBookingServiceApplication` on port `8082`
+- `DroppaDriverServiceApplication` on port `8083`
+- `DroppaApiGatewayApplication` on port `8089`
+
+The Spring `dev` profile is the default. It connects to MySQL at `localhost:3308`
+and Kafka at `localhost:29092`.
+
+When `.env` uses non-default database credentials or host ports, add the matching
+environment variables to the IntelliJ run configurations because IntelliJ does
+not automatically load the Compose `.env` file.
+
+For automatic DevTools restarts in IntelliJ, enable **Build project automatically**
+and **Allow auto-make to start even if developed application is currently running**.
+
+Stop the development infrastructure with:
+
+```powershell
+docker compose --profile dev down
+```
+
+## QA
+
+Build and start the complete Docker stack:
+
+```powershell
+docker compose --profile qa up --build -d
+```
+
+The application containers activate the Spring `qa` profile and communicate using
+Docker service names. Open the aggregated Swagger UI at
+`http://localhost:8089/swagger-ui.html`.
+
+Stop QA with:
+
+```powershell
+docker compose --profile qa down
+```
+
+Add `--volumes` to either `down` command to remove the MySQL data volume.

@@ -1,6 +1,7 @@
 package com.droppa.DroppaUserService.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -17,13 +18,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.droppa.DroppaUserService.dto.UserResponseDTO;
 import com.droppa.DroppaUserService.entity.Person;
 import com.droppa.DroppaUserService.entity.Token;
 import com.droppa.DroppaUserService.entity.UserAccount;
+import com.droppa.DroppaUserService.exception.IncorrectPasswordException;
+import com.droppa.DroppaUserService.exception.UserNotFoundException;
 import com.droppa.DroppaUserService.repository.PersonRepository;
 import com.droppa.DroppaUserService.repository.TokenRepository;
 import com.droppa.DroppaUserService.repository.UserAccountRepository;
@@ -54,9 +56,6 @@ public class AuthenticationServiceTest {
 	
 	@Mock
 	private JwtService jwtService;
-	
-	@Mock
-	private AuthenticationManager authenticationManager;
 	
 	@Mock
 	private UserService userService;
@@ -199,11 +198,16 @@ public class AuthenticationServiceTest {
 	    when(user.getEmail())
 	            .thenReturn(request.getUsername());
 
+	    when(user.getEncodedPassword())
+	            .thenReturn("encoded-password");
+
+	    when(passwordEncoder.matches(request.getPassword(), "encoded-password"))
+	            .thenReturn(true);
 
 	    when(jwtService.generateToken(any()))
 	            .thenReturn("jwt-token");
 	    
-	    when(tokenRepository.findAllValidTokenByUser(anyInt()))
+	    when(tokenRepository.findAllByUserIdAndExpiredFalseAndRevokedFalse(anyInt()))
         .thenReturn(List.of(new Token()));
 	    
 	    when(userService.buildUserResponse(any(), anyString()))
@@ -218,9 +222,51 @@ public class AuthenticationServiceTest {
 	    assertEquals("ernest@gmail.com", response.getEmail());
 	    assertEquals("jwt-token", response.getToken());
 
-	    verify(authenticationManager).authenticate(any());
 	    verify(tokenRepository).saveAll(any());
 	    verify(tokenRepository).save(any());
+	}
+
+	@Test
+	@DisplayName("Should throw user not found when login account does not exist")
+	void shouldThrowUserNotFoundWhenLoginAccountDoesNotExist() {
+
+	    var request = RequestMother.validCredentials();
+
+	    when(userService.getUserByEmail(request.getUsername()))
+	            .thenThrow(new UserNotFoundException(request.getUsername()));
+
+	    UserNotFoundException exception = assertThrows(
+	            UserNotFoundException.class,
+	            () -> authenticationService.authenticate(request)
+	    );
+
+	    assertEquals(
+	            "Account not found for email: " + request.getUsername(),
+	            exception.getMessage()
+	    );
+	}
+
+	@Test
+	@DisplayName("Should throw incorrect password when login password is invalid")
+	void shouldThrowIncorrectPasswordWhenLoginPasswordIsInvalid() {
+
+	    var request = RequestMother.validCredentials();
+
+	    UserAccount user = mock(UserAccount.class);
+
+	    when(userService.getUserByEmail(request.getUsername()))
+	            .thenReturn(user);
+	    when(user.getEncodedPassword())
+	            .thenReturn("encoded-password");
+	    when(passwordEncoder.matches(request.getPassword(), "encoded-password"))
+	            .thenReturn(false);
+
+	    IncorrectPasswordException exception = assertThrows(
+	            IncorrectPasswordException.class,
+	            () -> authenticationService.authenticate(request)
+	    );
+
+	    assertEquals("Incorrect password", exception.getMessage());
 	}
 
 }

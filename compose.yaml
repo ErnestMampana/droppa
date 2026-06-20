@@ -16,6 +16,7 @@ x-service-environment: &service-environment
 services:
   mysql:
     image: mysql:8.4
+    profiles: ["dev", "qa"]
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-droppa}
       MYSQL_USER: ${MYSQL_USER:-droppa}
@@ -23,6 +24,8 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-droppa-local-root-password}
     volumes:
       - mysql-data:/var/lib/mysql
+    ports:
+      - "${MYSQL_HOST_PORT:-3308}:3306"
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p\"$${MYSQL_ROOT_PASSWORD}\" --silent"]
       interval: 10s
@@ -31,25 +34,81 @@ services:
       start_period: 20s
     restart: unless-stopped
 
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    profiles: ["dev", "qa"]
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    restart: unless-stopped
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    profiles: ["dev", "qa"]
+    depends_on:
+      zookeeper:
+        condition: service_started
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:${KAFKA_HOST_PORT:-29092}
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    ports:
+      - "${KAFKA_HOST_PORT:-29092}:29092"
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    profiles: ["dev", "qa"]
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    ports:
+      - "8085:8080"
+    restart: unless-stopped
+
   user-service:
+    profiles: ["qa"]
     build:
       context: ./DroppaUserService
     environment:
       <<: *service-environment
+      SPRING_PROFILES_ACTIVE: qa
       JWT_SECRET: ${JWT_SECRET:-dev-only-secret-that-must-be-changed-before-production}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     depends_on:
       mysql:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
     expose:
       - "8081"
     restart: unless-stopped
 
   booking-service:
+    profiles: ["qa"]
     build:
       context: ./DroppaBookingService
     environment:
       <<: *service-environment
+      SPRING_PROFILES_ACTIVE: qa
       USER_SERVICE_URL: http://user-service:8081
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       BOOKING_PRICE_MINI_VAN: ${BOOKING_PRICE_MINI_VAN:-350.00}
       BOOKING_PRICE_ONE_TON: ${BOOKING_PRICE_ONE_TON:-500.00}
       BOOKING_PRICE_ONE_POINT_FIVE_TON: ${BOOKING_PRICE_ONE_POINT_FIVE_TON:-650.00}
@@ -60,6 +119,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+      kafka:
+        condition: service_healthy
       user-service:
         condition: service_started
     expose:
@@ -67,24 +128,34 @@ services:
     restart: unless-stopped
 
   driver-service:
+    profiles: ["qa"]
     build:
       context: ./DroppaDriverService
     environment:
       <<: *service-environment
+      SPRING_PROFILES_ACTIVE: qa
       USER_SERVICE_URL: http://user-service:8081
+      BOOKING_SERVICE_URL: http://booking-service:8082
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     depends_on:
       mysql:
         condition: service_healthy
+      kafka:
+        condition: service_healthy
       user-service:
+        condition: service_started
+      booking-service:
         condition: service_started
     expose:
       - "8083"
     restart: unless-stopped
 
   api-gateway:
+    profiles: ["qa"]
     build:
       context: ./DroppaApiGateway
     environment:
+      SPRING_PROFILES_ACTIVE: qa
       SERVER_PORT: 8089
       USER_SERVICE_URL: http://user-service:8081
       BOOKING_SERVICE_URL: http://booking-service:8082

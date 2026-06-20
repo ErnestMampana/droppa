@@ -70,6 +70,20 @@ public class DriverService {
 				.orElseThrow(() -> new ClientException("Driver not found"));
 	}
 
+	public DriverAccount goOnline(String driverEmail) {
+		DriverAccount driver = driverAccountRepository.findByEmailForUpdate(requireEmail(driverEmail))
+				.orElseThrow(() -> new ClientException("Driver not found"));
+		driver.goOnline();
+		return driver;
+	}
+
+	public DriverAccount goOffline(String driverEmail) {
+		DriverAccount driver = driverAccountRepository.findByEmailForUpdate(requireEmail(driverEmail))
+				.orElseThrow(() -> new ClientException("Driver not found"));
+		driver.goOffline();
+		return driver;
+	}
+
 	private String requireEmail(String email) {
 		if (email == null || email.isBlank()) {
 			throw new ClientException("Authenticated driver email is required");

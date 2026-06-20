@@ -53,4 +53,19 @@ public class GlobalExceptionHandler {
 	            .body(response);
 	}
 
+	@ExceptionHandler(IncorrectPasswordException.class)
+	public ResponseEntity<ErrorResponse> handleIncorrectPassword(
+	        IncorrectPasswordException ex) {
+
+	    ErrorResponse response = ErrorResponse.builder()
+	            .timestamp(LocalDateTime.now())
+	            .status(HttpStatus.UNAUTHORIZED.value())
+	            .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+	            .message(ex.getMessage())
+	            .build();
+
+	    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+	            .body(response);
+	}
+
 }

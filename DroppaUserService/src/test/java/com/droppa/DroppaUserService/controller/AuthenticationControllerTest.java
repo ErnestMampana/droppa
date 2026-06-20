@@ -16,7 +16,9 @@ import com.droppa.DroppaUserService.dto.PasswordResetRequest;
 import com.droppa.DroppaUserService.dto.PersonDTO;
 import com.droppa.DroppaUserService.dto.ResetPasswordRequest;
 import com.droppa.DroppaUserService.dto.UserResponseDTO;
-//import com.droppa.DroppaUserService.security.JwtAuthenticationFilter;
+import com.droppa.DroppaUserService.exception.IncorrectPasswordException;
+import com.droppa.DroppaUserService.exception.UserNotFoundException;
+import com.droppa.DroppaUserService.security.JwtAuthenticationFilter;
 import com.droppa.DroppaUserService.service.AuthenticationService;
 import com.droppa.DroppaUserService.service.AuthenticationServiceTest;
 import com.droppa.DroppaUserService.service.JwtService;
@@ -52,8 +54,8 @@ class AuthenticationControllerTest {
     @MockBean
     private AuthenticationService service;
 
-//    @MockBean
-//    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    @MockBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @MockBean
     private JwtService jwtService;
@@ -92,6 +94,41 @@ class AuthenticationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("ernest@gmail.com"))
                 .andExpect(jsonPath("$.token").value("jwt-token"));
+    }
+
+    @Test
+    @DisplayName("Should return not found when login account does not exist")
+    void shouldReturnNotFoundWhenLoginAccountDoesNotExist() throws Exception {
+
+        var request = RequestMother.validCredentials();
+
+        when(service.authenticate(any(CredentialsDTO.class)))
+                .thenThrow(new UserNotFoundException(request.getUsername()));
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Not Found"))
+                .andExpect(jsonPath("$.message")
+                        .value("Account not found for email: " + request.getUsername()));
+    }
+
+    @Test
+    @DisplayName("Should return unauthorized when login password is incorrect")
+    void shouldReturnUnauthorizedWhenLoginPasswordIsIncorrect() throws Exception {
+
+        var request = RequestMother.validCredentials();
+
+        when(service.authenticate(any(CredentialsDTO.class)))
+                .thenThrow(new IncorrectPasswordException());
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("Unauthorized"))
+                .andExpect(jsonPath("$.message").value("Incorrect password"));
     }
 
 

@@ -16,15 +16,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.droppa.DroppaBookingService.dto.BookingDTO;
 import com.droppa.DroppaBookingService.dto.PaymentDAO;
-import com.droppa.DroppaBookingService.dto.PersonClient;
 import com.droppa.DroppaBookingService.entity.Booking;
 import com.droppa.DroppaBookingService.enums.BookingStatus;
 import com.droppa.DroppaBookingService.enums.VehicleType;
 import com.droppa.DroppaBookingService.exceptions.BookingAccessDeniedException;
-import com.droppa.DroppaBookingService.interfaces.UserServiceClient;
+import com.droppa.DroppaBookingService.messaging.PaymentRequested;
+import com.droppa.DroppaBookingService.messaging.PaymentResult;
 import com.droppa.DroppaBookingService.repository.BookingRepository;
 import com.droppa.DroppaBookingService.repository.DropDetailsrepository;
 
@@ -38,9 +39,9 @@ class BookingServiceTest {
     @Mock
     private PartyService partyService;
     @Mock
-    private UserServiceClient userClient;
-    @Mock
     private BookingPricingService bookingPricingService;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private BookingService bookingService;
@@ -137,21 +138,62 @@ class BookingServiceTest {
     }
 
     @Test
-    void paymentUsesAuthenticatedIdentity() {
+    void paymentPublishesCommandAndMovesBookingToProcessing() {
         Booking booking = bookingOwnedBy("customer@example.com");
         PaymentDAO payment = PaymentDAO.builder()
                 .bookingId("booking-1")
-                .paymentType("ONLINE")
+                .paymentType("WALLET")
                 .build();
-        PersonClient user = new PersonClient();
-        user.setEmail("customer@example.com");
         when(bookingRepository.findByBookingId("booking-1")).thenReturn(java.util.Optional.of(booking));
-        when(userClient.getUserByEmail("customer@example.com")).thenReturn(user);
 
         bookingService.makePayment(payment, "customer@example.com");
 
-        verify(userClient).getUserByEmail("customer@example.com");
+        verify(eventPublisher).publishEvent(any(PaymentRequested.class));
+        assertEquals(BookingStatus.PAYMENT_PROCESSING, booking.getStatus());
+    }
+
+    @Test
+    void completedPaymentResultMovesBookingToAwaitingDriver() {
+        Booking booking = bookingOwnedBy("customer@example.com");
+        booking.requestPayment(
+                PaymentDAO.builder().bookingId("booking-1").paymentType("WALLET").build(),
+                "request-1"
+        );
+        when(bookingRepository.findByBookingId("booking-1")).thenReturn(java.util.Optional.of(booking));
+
+        bookingService.handlePaymentResult(new PaymentResult(
+                "result-1",
+                "request-1",
+                "booking-1",
+                "customer@example.com",
+                "COMPLETED",
+                null,
+                java.time.Instant.now()
+        ));
+
         assertEquals(BookingStatus.AWAITING_DRIVER, booking.getStatus());
+    }
+
+    @Test
+    void failedPaymentResultRestoresAwaitingPayment() {
+        Booking booking = bookingOwnedBy("customer@example.com");
+        booking.requestPayment(
+                PaymentDAO.builder().bookingId("booking-1").paymentType("WALLET").build(),
+                "request-1"
+        );
+        when(bookingRepository.findByBookingId("booking-1")).thenReturn(java.util.Optional.of(booking));
+
+        bookingService.handlePaymentResult(new PaymentResult(
+                "result-1",
+                "request-1",
+                "booking-1",
+                "customer@example.com",
+                "FAILED",
+                "Insufficient balance",
+                java.time.Instant.now()
+        ));
+
+        assertEquals(BookingStatus.AWAITING_PAYMENT, booking.getStatus());
     }
 
     private Booking bookingOwnedBy(String email) {

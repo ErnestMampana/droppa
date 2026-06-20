@@ -1,6 +1,7 @@
 package com.droppa.DroppaDriverService.entity;
 
 import com.droppa.DroppaDriverService.enums.AccountStatus;
+import com.droppa.DroppaDriverService.enums.DriverAvailability;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,6 +20,7 @@ class DriverAccountTest {
 		assertEquals("driver@example.com", account.getEmail());
 		assertFalse(account.isConfirmed());
 		assertEquals(AccountStatus.AWAITING_CONFIRMATION, account.getStatus());
+		assertEquals(DriverAvailability.OFFLINE, account.getAvailabilityStatus());
 		assertEquals("Driver User", account.getDriver().getFullName());
 		assertSame(account, account.getVehicle().getDriverAccount());
 	}
@@ -31,6 +33,28 @@ class DriverAccountTest {
 
 		assertTrue(account.isConfirmed());
 		assertEquals(AccountStatus.ACTIVE, account.getStatus());
+		assertEquals(DriverAvailability.OFFLINE, account.getAvailabilityStatus());
+	}
+
+	@Test
+	void availabilityTracksOnlineAndDeliveryState() {
+		DriverAccount account = newDriverAccount();
+		account.confirm();
+
+		account.goOnline();
+
+		assertEquals(DriverAvailability.ONLINE, account.getAvailabilityStatus());
+		assertTrue(account.isOnlineForOffers());
+
+		account.startTransit();
+
+		assertEquals(DriverAvailability.IN_TRANSIT, account.getAvailabilityStatus());
+		assertFalse(account.isOnlineForOffers());
+		assertThrows(IllegalStateException.class, account::goOffline);
+
+		account.completeTransit();
+
+		assertEquals(DriverAvailability.ONLINE, account.getAvailabilityStatus());
 	}
 
 	@Test

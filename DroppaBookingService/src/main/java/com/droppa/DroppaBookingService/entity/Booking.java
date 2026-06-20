@@ -5,9 +5,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import com.droppa.DroppaBookingService.dto.PaymentDAO;
-import com.droppa.DroppaBookingService.dto.PersonClient;
 import com.droppa.DroppaBookingService.enums.BookingStatus;
-import com.droppa.DroppaBookingService.enums.PaymentMethod;
 
 import com.droppa.DroppaBookingService.exceptions.BookingAccessDeniedException;
 import com.droppa.DroppaBookingService.exceptions.BookingException;
@@ -62,6 +60,8 @@ public class Booking {
 
     private String promoCodeUsed;
 
+    private String paymentRequestId;
+
     public static Booking create(
             String userId,
             String pickupAddress,
@@ -102,14 +102,13 @@ public class Booking {
 
         switch (status) {
 
-            case CANCELLED ->
-                    throw new BookingException("Booking already cancelled");
+            case CANCELLED -> throw new BookingException("Booking already cancelled");
 
-            case COMPLETE ->
-                    throw new BookingException("Completed booking cannot be cancelled");
+            case COMPLETE -> throw new BookingException("Completed booking cannot be cancelled");
 
-            case IN_TRANSACT ->
-                    throw new BookingException("Booking already in transit");
+            case IN_TRANSACT -> throw new BookingException("Booking already in transit");
+
+            case PAYMENT_PROCESSING -> throw new BookingException("Booking payment is being processed");
 
             default -> this.status = BookingStatus.CANCELLED;
         }
@@ -117,6 +116,13 @@ public class Booking {
 
     public void requireOwnedBy(String authenticatedUserEmail) {
         validateOwnership(authenticatedUserEmail);
+    }
+
+    public void requireAssignedTo(String driverEmail) {
+        if (!identitiesMatch(assinedDriver, driverEmail)) {
+            throw new BookingAccessDeniedException(
+                    "You cannot modify a booking assigned to another driver");
+        }
     }
 
     public boolean canBeViewedBy(String authenticatedEmail) {
@@ -155,15 +161,23 @@ public class Booking {
         this.status = BookingStatus.COMPLETE;
     }
 
-    public void pay(PersonClient user, PaymentDAO payment) {
-
-        validateOwnership(user.getEmail());
-
+    public void requestPayment(PaymentDAO payment, String requestId) {
         validatePaymentAllowed();
 
-        this.paymentType = payment.getPaymentType();  //.name();
+        this.paymentType = payment.getPaymentType();
         this.promoCodeUsed = payment.getUsedPromo();
+        this.paymentRequestId = requestId;
+        this.status = BookingStatus.PAYMENT_PROCESSING;
+    }
+
+    public void completePayment(String requestId) {
+        validateCurrentPaymentRequest(requestId);
         this.status = BookingStatus.AWAITING_DRIVER;
+    }
+
+    public void failPayment(String requestId) {
+        validateCurrentPaymentRequest(requestId);
+        this.status = BookingStatus.AWAITING_PAYMENT;
     }
 
     private void validateOwnership(String userId) {
@@ -184,20 +198,30 @@ public class Booking {
 
         switch (status) {
 
-            case CANCELLED ->
-                    throw new BookingException(
-                            "Cancelled booking cannot be paid");
+            case CANCELLED -> throw new BookingException(
+                    "Cancelled booking cannot be paid");
 
-            case COMPLETE ->
-                    throw new BookingException(
-                            "Completed booking cannot be paid");
+            case COMPLETE -> throw new BookingException(
+                    "Completed booking cannot be paid");
 
-            case AWAITING_DRIVER ->
-                    throw new BookingException(
-                            "Booking already paid");
+            case AWAITING_DRIVER -> throw new BookingException(
+                    "Booking already paid");
+
+            case PAYMENT_PROCESSING -> throw new BookingException(
+                    "Payment already processing");
 
             default -> {
             }
+        }
+    }
+
+    private void validateCurrentPaymentRequest(String requestId) {
+        if (paymentRequestId == null || !paymentRequestId.equals(requestId)) {
+            throw new BookingException("Payment result does not match the current request");
+        }
+
+        if (status != BookingStatus.PAYMENT_PROCESSING) {
+            throw new BookingException("Booking is not awaiting a payment result");
         }
     }
 }

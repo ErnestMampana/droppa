@@ -99,7 +99,31 @@ public class BookingController {
 			@Valid @RequestBody PaymentDAO payment,
 			@RequestHeader("X-User-Email") String authenticatedEmail) {
 		Booking cBooking = bookingService.makePayment(payment, authenticatedEmail);
-		return new ResponseEntity<Booking>(cBooking, HttpStatus.OK);
+		return new ResponseEntity<Booking>(cBooking, HttpStatus.ACCEPTED);
+	}
+
+	@PutMapping("/accept/{bookingId}")
+	public ResponseEntity<Booking> acceptBooking(
+			@PathVariable String bookingId,
+			@RequestHeader("X-User-Email") String driverEmail) {
+		Booking booking = bookingService.assignDriver(bookingId, driverEmail);
+		return new ResponseEntity<Booking>(booking, HttpStatus.ACCEPTED);
+	}
+
+	@PutMapping("/startDelivery/{bookingId}")
+	public ResponseEntity<Booking> startDelivery(
+			@PathVariable String bookingId,
+			@RequestHeader("X-User-Email") String driverEmail) {
+		Booking booking = bookingService.startDelivery(bookingId, driverEmail);
+		return new ResponseEntity<Booking>(booking, HttpStatus.ACCEPTED);
+	}
+
+	@PutMapping("/completeBooking/{bookingId}")
+	public ResponseEntity<Booking> completeBooking(
+			@PathVariable String bookingId,
+			@RequestHeader("X-User-Email") String driverEmail) {
+		Booking booking = bookingService.completeBooking(bookingId, driverEmail);
+		return new ResponseEntity<Booking>(booking, HttpStatus.OK);
 	}
 
 //	@PostMapping("/getprice")

@@ -6,21 +6,26 @@ import com.droppa.DroppaBookingService.exceptions.BookingAccessDeniedException;
 import com.droppa.DroppaBookingService.exceptions.BookingException;
 import com.droppa.DroppaBookingService.repository.BookingRepository;
 
-import com.droppa.DroppaBookingService.interfaces.UserServiceClient;
 import com.droppa.DroppaBookingService.dto.BookingDTO;
 
 import com.droppa.DroppaBookingService.dto.PaymentDAO;
-import com.droppa.DroppaBookingService.dto.PersonClient;
 
 import com.droppa.DroppaBookingService.entity.DropDetails;
+import com.droppa.DroppaBookingService.enums.BookingStatus;
+import com.droppa.DroppaBookingService.messaging.BookingEvent;
+import com.droppa.DroppaBookingService.messaging.PaymentRequested;
+import com.droppa.DroppaBookingService.messaging.PaymentResult;
 import com.droppa.DroppaBookingService.repository.DropDetailsrepository;
 //import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,8 +44,8 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final DropDetailsrepository dropRepository;
     private final PartyService partyService;
-    private final UserServiceClient userClient;
     private final BookingPricingService bookingPricingService;
+    private final ApplicationEventPublisher eventPublisher;
 
 	public Booking createBooking(BookingDTO dto,String email) {
 
@@ -53,7 +58,9 @@ public class BookingService {
 
 		dropRepository.save(dropDetails);
 
-		return bookingRepository.save(booking);
+		Booking savedBooking = bookingRepository.save(booking);
+		publishBookingEvent(savedBooking, "BOOKING_CREATED");
+		return savedBooking;
 	}
 
 	public Booking cancelBooking(String bookingId, String authenticatedEmail) {
@@ -61,6 +68,7 @@ public class BookingService {
 		Booking booking = getBookingById(bookingId);
 
 		booking.cancel(requireAuthenticatedEmail(authenticatedEmail));
+		publishBookingEvent(booking, "BOOKING_CANCELLED");
 
 		return booking;
 	}
@@ -70,43 +78,93 @@ public class BookingService {
 		Booking booking = getBookingById(payment.getBookingId());
 		booking.requireOwnedBy(email);
 
-		PersonClient user = userClient.getUserByEmail(email);
+		String requestEventId = UUID.randomUUID().toString();
+		booking.requestPayment(payment, requestEventId);
 
-		booking.pay(user, payment);
+		eventPublisher.publishEvent(new PaymentRequested(
+				requestEventId,
+				booking.getBookingId(),
+				email,
+				booking.getPrice(),
+				payment.getPaymentType(),
+				payment.getUsedPromo(),
+				Instant.now()
+		));
+		publishBookingEvent(booking, "PAYMENT_REQUESTED");
 
 		return booking;
 	}
 
 	public Booking assignDriver(String bookingId, String driverId) {
 
-		Booking booking = getBookingById(bookingId);
+		Booking booking = getBookingByIdForUpdate(bookingId);
 
 		booking.assignDriver(driverId);
+		publishBookingEvent(booking, "DRIVER_ASSIGNED");
 
 		return booking;
 	}
 
-	public Booking startDelivery(String bookingId) {
+	public Booking startDelivery(String bookingId, String authenticatedDriverEmail) {
 
-		Booking booking = getBookingById(bookingId);
+		Booking booking = getBookingByIdForUpdate(bookingId);
+		booking.requireAssignedTo(requireAuthenticatedEmail(authenticatedDriverEmail));
 
 		booking.startDelivery();
+		publishBookingEvent(booking, "DELIVERY_STARTED");
 
 		return booking;
 	}
 
-	public Booking completeBooking(String bookingId) {
+	public Booking completeBooking(String bookingId, String authenticatedDriverEmail) {
 
-		Booking booking = getBookingById(bookingId);
+		Booking booking = getBookingByIdForUpdate(bookingId);
+		booking.requireAssignedTo(requireAuthenticatedEmail(authenticatedDriverEmail));
 
 		booking.complete();
+		publishBookingEvent(booking, "DELIVERY_COMPLETED");
 
 		return booking;
+	}
+
+	public void handlePaymentResult(PaymentResult result) {
+		Booking booking = getBookingById(result.bookingId());
+
+		if (result.requestEventId() == null
+				|| !result.requestEventId().equals(booking.getPaymentRequestId())
+				|| booking.getStatus() != BookingStatus.PAYMENT_PROCESSING) {
+			log.warn(
+					"Ignoring stale or duplicate payment result {} for booking {}",
+					result.eventId(),
+					result.bookingId()
+			);
+			return;
+		}
+
+		if ("COMPLETED".equalsIgnoreCase(result.status())) {
+			booking.completePayment(result.requestEventId());
+			publishBookingEvent(booking, "PAYMENT_COMPLETED");
+			return;
+		}
+
+		if ("FAILED".equalsIgnoreCase(result.status())) {
+			booking.failPayment(result.requestEventId());
+			publishBookingEvent(booking, "PAYMENT_FAILED");
+			return;
+		}
+
+		throw new BookingException("Unsupported payment result status: " + result.status());
 	}
 
 	public Booking getBookingById(String bookingId) {
 
 		return bookingRepository.findByBookingId(bookingId).orElseThrow(
+				() -> new BookingException("Booking not found"));
+	}
+
+	private Booking getBookingByIdForUpdate(String bookingId) {
+
+		return bookingRepository.findByBookingIdForUpdate(bookingId).orElseThrow(
 				() -> new BookingException("Booking not found"));
 	}
 
@@ -156,5 +214,9 @@ public class BookingService {
 		}
 
 		return authenticatedEmail.trim();
+	}
+
+	private void publishBookingEvent(Booking booking, String eventType) {
+		eventPublisher.publishEvent(BookingEvent.from(booking, eventType));
 	}
 }

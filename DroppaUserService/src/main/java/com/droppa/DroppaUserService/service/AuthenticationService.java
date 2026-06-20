@@ -1,6 +1,7 @@
 package com.droppa.DroppaUserService.service;
 
 import com.droppa.DroppaUserService.exception.ClientException;
+import com.droppa.DroppaUserService.exception.IncorrectPasswordException;
 import com.droppa.DroppaUserService.dto.ConfirmEmailRequest;
 import com.droppa.DroppaUserService.dto.CredentialsDTO;
 import com.droppa.DroppaUserService.dto.PersonDTO;
@@ -26,8 +27,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -47,7 +46,6 @@ public class AuthenticationService {
 	private final TokenRepository tokenRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtService jwtService;
-	private final AuthenticationManager authenticationManager;
 	private final UserService userService;
 
 	
@@ -160,14 +158,11 @@ public class AuthenticationService {
 	
 	public UserResponseDTO authenticate(CredentialsDTO request) {
 
-	    authenticationManager.authenticate(
-	            new UsernamePasswordAuthenticationToken(
-	                    request.getUsername(),
-	                    request.getPassword()
-	            )
-	    );
-
 	    UserAccount user = userService.getUserByEmail(request.getUsername());
+
+	    if (!passwordEncoder.matches(request.getPassword(), user.getEncodedPassword())) {
+	        throw new IncorrectPasswordException();
+	    }
 
 	    user.ensureIsHealthy();
 

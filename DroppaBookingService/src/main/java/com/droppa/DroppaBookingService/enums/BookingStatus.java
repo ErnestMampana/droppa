@@ -7,7 +7,8 @@ public enum BookingStatus {
 	AWAITING_DRIVER("Awaiting driver to be assigned"), 
 	IN_TRANSACT("Driver in transit"), 
 	INVALID("Booking cancelled"),
-	AWAITING_PAYMENT("Awaiting payments"), 
+	AWAITING_PAYMENT("Awaiting payments"),
+	PAYMENT_PROCESSING("Payment is being processed"),
 	CANCELLED("Cancelled"), 
 	RESERVED("Booking taken already"),
 	ACCEPTED("Booking accepted");
